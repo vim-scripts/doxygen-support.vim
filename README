@@ -1,0 +1,32 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1955
+
+This plugin generates Ex commands and a menu (or a menu tree) from a template
+file containing user defined comment templates to be used for source code
+documentation with Doxygen. The template file can have user defined macros.
+
+Example and screen shots :   http://lug.fh-swf.de/vim/vim-doxygen/index.html
+
+The help file online :   http://lug.fh-swf.de/vim/vim-doc/doxygensupport.html
+
+Documentation
+--------------------------------------------------------
+This plugin comes with a help file (doxygensupport.txt). Read it with  
+
+  :h doxygensupport
+
+
+MAILING LIST
+--------------------------------------------------------
+You can subscribe to the vim-plugins-list mailing list to post your questions or
+suggestions for improvement or to report bugs.  The list will also be used to
+announce new releases ( c.vim / bash-support / perl-support / doxgen-support ).
+Visit the following page for subscribing to the mailing list:
+     
+  http://lug.fh-swf.de/cgi-bin/mailman/listinfo/vim-plugins-list
+
+The vim-plugins-list list is very low on traffic.
+
+_______________________
+Thank you for rating doxygen-support !
+ 
+
