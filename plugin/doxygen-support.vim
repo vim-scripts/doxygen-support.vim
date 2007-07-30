@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.2 2007/07/13 14:13:11 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.4 2007/07/29 08:46:39 mehner Exp $
 "      LICENSE:  Copyright (c) 2007, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "1.0"                   " version number of this script; do not change
+let g:DoxygenVersion= "1.1"                   " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -68,6 +68,8 @@ let s:Doxy_TemplateSaveCmd        = {}
 let s:Doxy_TemplateSaveMenu       = {}
 let s:Doxy_ExpansionLimit         = 10
 let s:Doxy_Menuheader             = ''
+let s:Doxy_Attribute							= {}
+let s:Attribute										= { 'below':'', 'above':'', 'append':'' }
 "
 "------------------------------------------------------------------------------
 "  Look for global variables (if any), to override the defaults.
@@ -251,16 +253,19 @@ function! DoxygenReadTemplates ()
       "
       " build the template dictionary
       "
-      let name  = matchstr( line, '^==\s*\([a-zA-Z][0-9a-zA-Z'.s:Doxy_TemplateNameDelimiter.']*\)\s*==' )
+      let name  = matchstr( line, '^==\s*\([a-zA-Z][0-9a-zA-Z'.s:Doxy_TemplateNameDelimiter.']\+\)\s*==\s*\([a-z]\+\s*==\)\?' )
       if name != ''
-        let name  = substitute( name, '==\s*', '', 'g' )
-        let name  = substitute( name, '\s*==', '', 'g' )
-        let name  = escape( name, ' ' )
-        let item  = name
+				let part	= split( name, '\s*==\s*')
+        let item  = part[0]
         if has_key( s:Doxy_Template, item )
           echomsg "existing doxygen template '".item."' overwritten"
         end
         let s:Doxy_Template[item] = ''
+				"
+				let s:Doxy_Attribute[item] = 'below'
+				if has_key( s:Attribute, get( part, 1, 'NONE' ) )
+					let s:Doxy_Attribute[item] = part[1]
+				end
       else
         if item != ''
           let s:Doxy_Template[item] = s:Doxy_Template[item].line."\n"
@@ -337,15 +342,35 @@ function! DoxygenInsertTemplate ( key )
   let val = DoxygenExpandUserMacros (a:key)
 
   "------------------------------------------------------------------------------
-  "  expand the user macros
+  "  insert the user macros
   "------------------------------------------------------------------------------
-  let pos1  = line(".")+1
-  put =val
-  let pos2  = line(".")
+	let	mode	= s:Doxy_Attribute[a:key]
+
+	if mode	== 'below'
+		let pos1  = line(".")+1
+		put  =val
+		let pos2  = line(".")
+	end
+
+	if mode	== 'above'
+		let pos1  = line(".")+1
+		put! =val
+		let pos2  = line(".")
+	end
+
+	if mode	== 'append'
+		let pos1  = line(".")
+		put =val
+		let pos2  = line(".")-1
+		exe ":".pos1
+		:normal $
+		:join!
+	end
 
   "------------------------------------------------------------------------------
   "  position the cursor
   "------------------------------------------------------------------------------
+	echo pos1." / ".pos2
   exe ":".pos1
   let match = search( '\$CURSOR\$', "", pos2 )
   if match != 0

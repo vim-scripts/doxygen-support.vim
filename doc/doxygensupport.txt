@@ -1,8 +1,8 @@
 *doxygensupport.txt*                                         *doxygen-support*
- Doxygen Support                                                 July 13 2007
-															Plugin version 1.0
-												for Vim version 7.0 and above
-											 Fritz Mehner <mehner@fh-swf.de>
+ Doxygen Support                                                 July 29 2007
+                              Plugin version 1.1
+                        for Vim version 7.0 and above
+                       Fritz Mehner <mehner@fh-swf.de>
 
 This plugin generates a menu and Ex commands from a template file containing
 user defined comment templates to be used for source code documentation with
@@ -65,7 +65,7 @@ last non-whitespace in this line. An example
 
 An <macroexpansion> may contain other macros to be expanded. The recursion is
 limited by the expansion algorithm to a depth of 10.  The order of the macro
-definitions does not matter. Macronames are case sensitive.
+definitions does not matter. Macro names are case sensitive.
 
 There are a few predefined macros:
 
@@ -82,15 +82,18 @@ There are a few predefined macros:
 1.3  Doxygen Templates                      *doxygensupport-doxygen-templates*
 ------------------------------------------------------------------------------
 
-A template definition has the following syntax:
+A template definition has the following form:
 
-==<templatename>==
+==<templatename>==[<insert mode>==][comment]
 1. template line
 2. template line
   ...
 
-The end of a definition is the start of a new template definition or the end
-of the file.
+It starts with a headline with the syntax shown above followed by a Doxygen
+comment. The insert mode part (see below) and the comment part are optional.
+Whitespaces between the parts are allowed.  The end of a definition is the
+start of a new template definition or the end of the file. 
+
 A <templatename> starts with a letter followed by optional letters, digits,
 or allowed delimiters. The allowed delimiters are
 
@@ -112,6 +115,35 @@ Here an example template enclosed in delimiting comments:
  *  Detailed description starts here.
  */
 #--------------------------------------------------------------
+
+
+Insert mode specification <insert mode>
+---------------------------------------
+
+There are three insert modes: 'below', 'above', 'append'. The default is
+'below' The insert mode specification is optional. A wrong specification will
+be replaced by the default.
+
+A file comment will usually be inserted above the first line of a file and
+therefore has 'above'.  A documentation block to be put after a member needs
+'append':
+
+#--------------------------------------------------------------
+==brief-after-member==append==
+ /**< \brief|$CURSOR$|*/
+#--------------------------------------------------------------
+
+HINT. According to the syntax of the headline the 
+'append' followed by '==' in the line
+
+==brief-after-member==append==
+
+is an insert mode specification. The 'append' in
+
+==brief-after-member==append
+
+is a comment. The insert mode is now 'below'.
+
 
 ==============================================================================
 2.  THE DOXYGEN MENU                                     *doxygensupport-menu*
@@ -171,7 +203,7 @@ will be generated when the editor starts or on demand (see|doxygensupport-rebuil
 
 Vim Ex command names have to start always with an uppercase letter followed by
 letters or digits. Delimiters are not allowed.  The user defined template
-names are therefor transformed into camel case notation.  The parts separated
+names are therefore transformed into camel case notation.  The parts separated
 by the delimiters are joined together now. The first letter of each part will
 be transformed to uppercase. The new word will be prefixed by 'Doxy'. Some
 examples:
