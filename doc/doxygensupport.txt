@@ -1,6 +1,6 @@
 *doxygensupport.txt*                                         *doxygen-support*
- Doxygen Support                                                 July 29 2007
-                              Plugin version 1.1
+ Doxygen Support                                               August 01 2007
+                              Plugin version 1.2
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
@@ -120,18 +120,33 @@ Here an example template enclosed in delimiting comments:
 Insert mode specification <insert mode>
 ---------------------------------------
 
-There are three insert modes: 'below', 'above', 'append'. The default is
-'below' The insert mode specification is optional. A wrong specification will
-be replaced by the default.
+There are 4 insert modes: 'below', 'above', 'append', and 'insert'. The
+default is 'below' The insert mode specification is optional. A wrong
+specification will be replaced by the default.
 
-A file comment will usually be inserted above the first line of a file and
-therefore has 'above'.  A documentation block to be put after a member needs
-'append':
+BELOW. A comment block will typically be inserted below the cursor.
+
+ABOVE. A file comment will usually be inserted above the first line of a file
+and therefore has 'above'.
+
+APPEND. A documentation block to be put after a member needs 'append':
 
 #--------------------------------------------------------------
 ==brief-after-member==append==
  /**< \brief|$CURSOR$|*/
 #--------------------------------------------------------------
+
+INSERT. In-text formulas should be put between a pair of |@f$| commands.  The
+following template will be inserted in the running text. The cursor will be
+set inside the construct.
+
+#--------------------------------------------------------------
+== Formula-in-text == insert ==
+|@f$||$CURSOR$||@f$|
+#--------------------------------------------------------------
+
+All templates can have more than one line.
+
 
 HINT. According to the syntax of the headline the 
 'append' followed by '==' in the line

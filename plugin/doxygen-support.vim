@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.4 2007/07/29 08:46:39 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.5 2007/08/01 17:23:50 mehner Exp $
 "      LICENSE:  Copyright (c) 2007, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "1.1"                   " version number of this script; do not change
+let g:DoxygenVersion= "1.2"                   " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -69,7 +69,7 @@ let s:Doxy_TemplateSaveMenu       = {}
 let s:Doxy_ExpansionLimit         = 10
 let s:Doxy_Menuheader             = ''
 let s:Doxy_Attribute							= {}
-let s:Attribute										= { 'below':'', 'above':'', 'append':'' }
+let s:Attribute										= { 'below':'', 'above':'', 'append':'', 'insert':'' }
 "
 "------------------------------------------------------------------------------
 "  Look for global variables (if any), to override the defaults.
@@ -363,25 +363,30 @@ function! DoxygenInsertTemplate ( key )
 		put =val
 		let pos2  = line(".")-1
 		exe ":".pos1
-		:normal $
 		:join!
 	end
 
+	if mode	== 'insert'
+    let val		= substitute( val, '\n$', '', '' )
+		let pos1  = line(".")
+		let pos2  = pos1 + count( split(val,'\zs'), "\n" ) 
+		exe "normal a".val
+	end
+	"
   "------------------------------------------------------------------------------
   "  position the cursor
   "------------------------------------------------------------------------------
-	echo pos1." / ".pos2
-  exe ":".pos1
-  let match = search( '\$CURSOR\$', "", pos2 )
-  if match != 0
-    if  matchend( getline(match) ,'\$CURSOR\$') == match( getline(match) ,"$" )
-      normal 8x
-      :startinsert!
-    else
-      normal 8x
-      :startinsert
-    endif
-  end
+	exe ":".pos1
+	let match = search( '\$CURSOR\$', "", pos2 )
+	if match != 0
+		if  matchend( getline(match) ,'\$CURSOR\$') == match( getline(match) ,"$" )
+			normal 8x
+			:startinsert!
+		else
+			normal 8x
+			:startinsert
+		endif
+	end
 
 endfunction    " ----------  end of function DoxygenInsertTemplate  ----------
 
