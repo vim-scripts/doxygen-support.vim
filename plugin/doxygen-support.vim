@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.5 2007/08/01 17:23:50 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.8 2007/08/05 09:59:42 mehner Exp $
 "      LICENSE:  Copyright (c) 2007, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "1.2"                   " version number of this script; do not change
+let g:DoxygenVersion= "1.3"                   " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -43,9 +43,9 @@ let s:MSWIN =   has("win16") || has("win32")     || has("win64") ||
               \ has("win95") || has("win32unix")
 " 
 if  s:MSWIN
-  let s:plugin_dir  = $VIM.'\vimfiles\'
+  let s:plugin_dir  = $VIM.'\vimfiles\plugin\'
 else
-  let s:plugin_dir  = $HOME.'/.vim/'
+  let s:plugin_dir  = $HOME.'/.vim/plugin/'
 endif
 "
 "------------------------------------------------------------------------------
@@ -54,22 +54,26 @@ endif
 let s:Doxy_ExCommandLeader   = 'Doxy'           " Ex command leader
 let s:Doxy_LoadMenus         = 'yes'            " toggle default
 let s:Doxy_RootMenu          = 'Do&xy.'         " name of the root menu (not empty)
-let s:Doxy_TemplateFile      = s:plugin_dir.'plugin/doxygen.templates'
+let s:Doxy_TemplateFile      = s:plugin_dir.'doxygen.templates'
 "
 "------------------------------------------------------------------------------
 "  Control variables (not user configurable)
 "------------------------------------------------------------------------------
+let s:Attribute                   = { 'below':'', 'above':'', 'append':'', 'insert':'' }
+let s:Doxy_Attribute              = {}
+let s:Doxy_ExpansionLimit         = 10
+let s:Doxy_FileVisited            = []
+let s:Doxy_ItemOrder              = []
 let s:Doxy_MacroNameRegex         = '\$[a-zA-Z][a-zA-Z0-9_]*\$'
-let s:Doxy_TemplateNameDelimiter  = '-+_,\. '
-let s:Doxy_Makro                  = {}
+let s:Doxy_Makro                  = { '$sortmenus$':'no' }
+let s:Doxy_Menuheader             = ''
 let s:Doxy_MenuVisible            = 0           " state : 0 = not visible / 1 = visible
 let s:Doxy_Template               = {}
+let s:Doxy_TemplateNameDelimiter  = '-+_,\. '
+let s:Doxy_TemplateRegex					= '^==\s*\([a-zA-Z][0-9a-zA-Z'.s:Doxy_TemplateNameDelimiter
+let s:Doxy_TemplateRegex				 .= ']\+\)\s*==\s*\([a-z]\+\s*==\)\?'
 let s:Doxy_TemplateSaveCmd        = {}
 let s:Doxy_TemplateSaveMenu       = {}
-let s:Doxy_ExpansionLimit         = 10
-let s:Doxy_Menuheader             = ''
-let s:Doxy_Attribute							= {}
-let s:Attribute										= { 'below':'', 'above':'', 'append':'', 'insert':'' }
 "
 "------------------------------------------------------------------------------
 "  Look for global variables (if any), to override the defaults.
@@ -89,6 +93,9 @@ if s:Doxy_RootMenu == ""
   let s:Doxy_RootMenu = 'Do&xy.'       " use the default
 endif
 "
+let s:Doxy_TemplateFileDir  = fnamemodify( s:Doxy_TemplateFile, ":p:h" ).'/'
+let s:Doxy_TemplateFile     = fnamemodify( s:Doxy_TemplateFile, ":t" ) 
+
 "------------------------------------------------------------------------------
 " find the Ex command leader
 " remove non-word character, leading digits, underscore
@@ -173,9 +180,16 @@ function! DoxygenInitMenu ()
   "------------------------------------------------------------------------------
   "  build new menus from the templates / save the templates
   "------------------------------------------------------------------------------
-  for key in sort( keys(s:Doxy_Template ))
-    exe "amenu  <silent> .100 ".s:Doxy_RootMenu.key."  <Esc><Esc>:call DoxygenInsertTemplate ('".key."')<CR>"
-  endfor
+  if s:Doxy_Makro['$sortmenus$'] == 'yes'
+    for key in sort( keys(s:Doxy_Template ))
+      exe "amenu  <silent> .100 ".s:Doxy_RootMenu.key."  <Esc><Esc>:call DoxygenInsertTemplate ('".key."')<CR>"
+    endfor
+  else
+    for key in s:Doxy_ItemOrder
+      exe "amenu  <silent> .100 ".s:Doxy_RootMenu.key."  <Esc><Esc>:call DoxygenInsertTemplate ('".key."')<CR>"
+    endfor
+
+  end
   let s:Doxy_TemplateSaveMenu = s:Doxy_Template
 
   let s:Doxy_MenuVisible = 1
@@ -198,48 +212,55 @@ function! DoxygenRebuild ()
   "     update the current buffer
   "     open the template file in a new window for editing
   "-------------------------------------------------------------------------------
-  if bufexists( s:Doxy_TemplateFile )
-    if bufwinnr( s:Doxy_TemplateFile ) == -1
-      exe ":sbuffer ".bufnr( s:Doxy_TemplateFile )
+  if bufexists( s:Doxy_TemplateFileDir.s:Doxy_TemplateFile )
+    if bufwinnr( s:Doxy_TemplateFileDir.s:Doxy_TemplateFile ) == -1
+      exe ":sbuffer ".bufnr( s:Doxy_TemplateFileDir.s:Doxy_TemplateFile )
     else
-      exe bufwinnr(s:Doxy_TemplateFile) . "wincmd w"
+      exe bufwinnr(s:Doxy_TemplateFileDir.s:Doxy_TemplateFile) . "wincmd w"
     end
     :update 
-    call DoxygenReadTemplates()
+
+    let s:Doxy_ItemOrder    = []
+    let s:Doxy_Template     = {}
+    let s:Doxy_FileVisited  = []
+  
+    call DoxygenReadTemplates(s:Doxy_TemplateFile)
     call DoxygenBuildCommands()
     if has("gui_running")
       call DoxygenInitMenu()
     endif
-    echomsg "doxygen comments rebuilt from '".s:Doxy_TemplateFile."'"
+    echomsg "doxygen comments rebuilt from '".s:Doxy_TemplateFileDir.s:Doxy_TemplateFile."'"
   else
     :update 
-    exe ":new ".s:Doxy_TemplateFile
+    exe ":new ".s:Doxy_TemplateFileDir.s:Doxy_TemplateFile
   end
 endfunction    " ----------  end of function DoxygenRebuild  ----------
 
 "------------------------------------------------------------------------------
 "  DoxygenReadTemplates
-"  read the template file, build the macro and the template dictionary
+"  read the template file(s), build the macro and the template dictionary
+"
 "------------------------------------------------------------------------------
-function! DoxygenReadTemplates ()
+function! DoxygenReadTemplates ( templatefile )
 
-  let templatefile  =  s:Doxy_TemplateFile
-  if !filereadable( templatefile )
+  if !filereadable( s:Doxy_TemplateFileDir.a:templatefile )
     echohl WarningMsg
-    echomsg "doxygen template file '".templatefile."' does not exist or is not readable"
+    echomsg "doxygen template file '".s:Doxy_TemplateFileDir.a:templatefile."' does not exist or is not readable"
     echohl None
     return
   end
 
+  let s:Doxy_FileVisited  += [a:templatefile]
+
   "------------------------------------------------------------------------------
   "  read template file, start with an empty template dictionary
   "------------------------------------------------------------------------------
-  let s:Doxy_Template     = {}
+
   let item  = ''
-  for line in readfile( templatefile )
+  for line in readfile( s:Doxy_TemplateFileDir.a:templatefile )
     if line !~ '^#'
       "
-      " build the macro dictionary
+      " macros and file includes
       "
       let name  = matchstr( line, '^\s*'.s:Doxy_MacroNameRegex.'\s*=' )
       if name != ''
@@ -247,25 +268,34 @@ function! DoxygenReadTemplates ()
         let val = matchstr( line, '=.*' )
         let val = substitute( val, '\s*$', "", "" )
         let val = substitute( val, '=\s*', "", "" )
-        let s:Doxy_Makro[key] = val
-        continue
+        let val = substitute( val, "[\"\']$", '', '' )
+        let val = substitute( val, "^[\"\']", '', '' )
+        "
+        if key == '$includefile$' && count( s:Doxy_FileVisited, val ) == 0
+          call DoxygenReadTemplates( val )    " recursive call
+        else
+          let s:Doxy_Makro[key] = val
+        end
+        continue                                            " next line
       endif
       "
-      " build the template dictionary
+      " template header
       "
-      let name  = matchstr( line, '^==\s*\([a-zA-Z][0-9a-zA-Z'.s:Doxy_TemplateNameDelimiter.']\+\)\s*==\s*\([a-z]\+\s*==\)\?' )
+      let name  = matchstr( line, s:Doxy_TemplateRegex )
+      "
       if name != ''
-				let part	= split( name, '\s*==\s*')
+        let part  = split( name, '\s*==\s*')
         let item  = part[0]
         if has_key( s:Doxy_Template, item )
           echomsg "existing doxygen template '".item."' overwritten"
         end
+        let s:Doxy_ItemOrder += [ item ]
         let s:Doxy_Template[item] = ''
-				"
-				let s:Doxy_Attribute[item] = 'below'
-				if has_key( s:Attribute, get( part, 1, 'NONE' ) )
-					let s:Doxy_Attribute[item] = part[1]
-				end
+        "
+        let s:Doxy_Attribute[item] = 'below'
+        if has_key( s:Attribute, get( part, 1, 'NONE' ) )
+          let s:Doxy_Attribute[item] = part[1]
+        end
       else
         if item != ''
           let s:Doxy_Template[item] = s:Doxy_Template[item].line."\n"
@@ -344,49 +374,49 @@ function! DoxygenInsertTemplate ( key )
   "------------------------------------------------------------------------------
   "  insert the user macros
   "------------------------------------------------------------------------------
-	let	mode	= s:Doxy_Attribute[a:key]
+  let mode  = s:Doxy_Attribute[a:key]
 
-	if mode	== 'below'
-		let pos1  = line(".")+1
-		put  =val
-		let pos2  = line(".")
-	end
+  if mode == 'below'
+    let pos1  = line(".")+1
+    put  =val
+    let pos2  = line(".")
+  end
 
-	if mode	== 'above'
-		let pos1  = line(".")+1
-		put! =val
-		let pos2  = line(".")
-	end
+  if mode == 'above'
+    let pos1  = line(".")+1
+    put! =val
+    let pos2  = line(".")
+  end
 
-	if mode	== 'append'
-		let pos1  = line(".")
-		put =val
-		let pos2  = line(".")-1
-		exe ":".pos1
-		:join!
-	end
+  if mode == 'append'
+    let pos1  = line(".")
+    put =val
+    let pos2  = line(".")-1
+    exe ":".pos1
+    :join!
+  end
 
-	if mode	== 'insert'
-    let val		= substitute( val, '\n$', '', '' )
-		let pos1  = line(".")
-		let pos2  = pos1 + count( split(val,'\zs'), "\n" ) 
-		exe "normal a".val
-	end
-	"
+  if mode == 'insert'
+    let val   = substitute( val, '\n$', '', '' )
+    let pos1  = line(".")
+    let pos2  = pos1 + count( split(val,'\zs'), "\n" ) 
+    exe "normal a".val
+  end
+  "
   "------------------------------------------------------------------------------
   "  position the cursor
   "------------------------------------------------------------------------------
-	exe ":".pos1
-	let match = search( '\$CURSOR\$', "", pos2 )
-	if match != 0
-		if  matchend( getline(match) ,'\$CURSOR\$') == match( getline(match) ,"$" )
-			normal 8x
-			:startinsert!
-		else
-			normal 8x
-			:startinsert
-		endif
-	end
+  exe ":".pos1
+  let match = search( '\$CURSOR\$', "", pos2 )
+  if match != 0
+    if  matchend( getline(match) ,'\$CURSOR\$') == match( getline(match) ,"$" )
+      normal 8x
+      :startinsert!
+    else
+      normal 8x
+      :startinsert
+    endif
+  end
 
 endfunction    " ----------  end of function DoxygenInsertTemplate  ----------
 
@@ -413,7 +443,7 @@ endfunction    " ----------  end of function DoxygenExpandUserMacros  ----------
 "  build the menus (GUI only)
 "------------------------------------------------------------------------------
 "
-call DoxygenReadTemplates()
+call DoxygenReadTemplates(s:Doxy_TemplateFile)
 call DoxygenBuildCommands()
 "
 if has("gui_running")

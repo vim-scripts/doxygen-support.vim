@@ -52,7 +52,7 @@ $COPYRIGHT$ = Copyright (c) $YEAR$, $AUTHOR$
  *
  *  \internal
  *    Created:  $DATE$
- *   Revision:  $Id$
+ *   Revision:  $Id: doxygen.templates.example,v 1.4 2007/08/02 14:35:24 mehner Exp $
  *   Compiler:  gcc/g++
  *    Company:  $COMPANY$
  *  Copyright:  $COPYRIGHT$
@@ -63,7 +63,7 @@ $COPYRIGHT$ = Copyright (c) $YEAR$, $AUTHOR$
  */
 
 #--------------------------------------------------------------
-==brief-after-member==append==
+==brief-after-member== append ==
  /**< \brief $CURSOR$ */
 #--------------------------------------------------------------
 == Formula-in-text == insert ==

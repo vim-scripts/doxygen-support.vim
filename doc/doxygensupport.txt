@@ -1,13 +1,12 @@
 *doxygensupport.txt*                                         *doxygen-support*
- Doxygen Support                                               August 01 2007
-                              Plugin version 1.2
+ Doxygen Support                                               August 05 2007
+                              Plugin version 1.3
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
 This plugin generates a menu and Ex commands from a template file containing
 user defined comment templates to be used for source code documentation with
 Doxygen.
-
 ==============================================================================
  0.   CONTENT                                             *doxygensupport-toc*
 ==============================================================================
@@ -15,7 +14,8 @@ Doxygen.
  1.   The template file                     |doxygensupport-template-file|
  1.1   Template file comments               |doxygensupport-template-comments|
  1.2   Template file macros                 |doxygensupport-template-macros|
- 1.3   Doxygen Templates                    |doxygensupport-doxygen-templates|
+ 1.3   Predefined Control Macros            |doxygensupport-control-macros|
+ 1.4   Doxygen Templates                    |doxygensupport-doxygen-templates|
  2.   The Doxygen menu                      |doxygensupport-menu|
  3.   The Doxygen Ex commands               |doxygensupport-ex-commands|
  4.   Rebuilding menus and Ex commands      |doxygensupport-rebuild|
@@ -36,6 +36,11 @@ analyzed and a menu item will be created on the fly for each template found
 (gVim). In parallel an Ex command will be generated for each item. For the
 console version Vim only the Ex commands are available.
 
+REMARK. Beside the name this plugin has nothing which is really Doxygen
+specific. It can be used as a versatile general purpose tool to conveniently
+manage text snippets. Even the menu name and the command leader can be changed
+(see|doxygensupport-customization|).
+
 ==============================================================================
 1.  THE TEMPLATE FILE                           *doxygensupport-template-file*
 ==============================================================================
@@ -46,6 +51,7 @@ three sorts of entries.
 ------------------------------------------------------------------------------
 1.1  Template file comments                 *doxygensupport-template-comments*
 ------------------------------------------------------------------------------
+
 Lines starting with a '#' are comments.
 
 ------------------------------------------------------------------------------
@@ -69,17 +75,44 @@ definitions does not matter. Macro names are case sensitive.
 
 There are a few predefined macros:
 
-|$DATE$|   The preferred date representation for the current locale without
-           the time.
-|$YEAR$|   The year as a decimal number including the century.
-|$TIME$|   The preferred time representation for the current locale without
-           the date and the time zone or name or abbreviation.
-|$FILE$|   The filename without the path.
-|$PATH$|   The pathname without filename.
-|$CURSOR$| The cursor postion after the insertion of the template.
+|$DATE$|         The preferred date representation for the current locale
+                 without the time.
+|$YEAR$|         The year as a decimal number including the century.
+|$TIME$|         The preferred time representation for the current locale
+                 without the date and the time zone or name or abbreviation.
+|$FILE$|         The filename without the path.
+|$PATH$|         The pathname without filename.
+|$CURSOR$|       The cursor postion after the insertion of the template.
+
+|$sortmenus$|    Sorted menus yes/no (see below)
+|$includefile$|  Include a template file (see below).
+
+REMARKS. Case of letters matters. Do not name a macro|$Id: doxygensupport.txt,v 1.8 2007/08/05 09:10:38 mehner Exp $|if you want this to
+be expanded by a revision control system.
+
 
 ------------------------------------------------------------------------------
-1.3  Doxygen Templates                      *doxygensupport-doxygen-templates*
+1.3  Predefined Control Macros                 *doxygensupport-control-macros*
+------------------------------------------------------------------------------
+
+The menu items can be sorted with the macro
+
+|$sortmenus$| = yes   
+
+Default is 'no'.
+
+This plugin has an include mechanism. The templates can be split in different
+files. These can be included, e.g.
+
+|$includefile$| = doxygen.cpp.templates
+|$includefile$| = doxygen.java.templates
+
+Each file will be included only once. The file names may not have a path. The
+path is assumed to be the same as for the main templates file (see
+|doxygensupport-template-file|).
+
+------------------------------------------------------------------------------
+1.4  Doxygen Templates                      *doxygensupport-doxygen-templates*
 ------------------------------------------------------------------------------
 
 A template definition has the following form:
