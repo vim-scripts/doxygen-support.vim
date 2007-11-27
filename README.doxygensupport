@@ -1,0 +1,82 @@
+README for doxygen-support.vim (Version 1.4) / November 27 2007
+
+  *  INSTALLATION
+  *  RELEASE NOTES 
+  *  FILES
+
+This plugin generates Ex commands and a menu (or a menu tree) from a template
+file containing user defined comment templates to be used for source code
+documentation with Doxygen. The template file can have user defined macros and
+can include other files.
+
+Beside the name this plugin has nothing which is really Doxygen specific. It
+can be used as a versatile general purpose tool to conveniently manage text
+snippets. 
+
+=======================================================================================
+  INSTALLATION
+=======================================================================================
+
+Copy the zip archive  doxygen-support.zip to $HOME/.vim/ or $VIM/vimfiles
+(on the Windows platforms) and run
+
+      unzip doxygen-support.zip
+
+For a quick start rename
+
+  $HOME/.vim/plugin/doxygen.templates.example
+
+into
+
+  $HOME/.vim/plugin/doxygen.templates
+
+Start gVim or Vim. Generate the help tags with
+
+  :helptags ~/.vim/doc
+
+Read the helpfile with
+
+  :h doxygensupport
+
+=======================================================================================
+  RELEASE NOTES 
+=======================================================================================
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 1.4
+---------------------------------------------------------------------------------------
+- Templates can contain preprocessor statements.
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 1.3
+---------------------------------------------------------------------------------------
+- Include mechanism for template files.
+- Menu items can be sorted/unsorted.
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 1.2
+---------------------------------------------------------------------------------------
+- New 'insert' attribute for templates.
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 1.1
+---------------------------------------------------------------------------------------
+- New template attributes allow insertion above and below the current line and
+  appending to the current line.
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 1.0
+---------------------------------------------------------------------------------------
+- Initial upload
+
+=======================================================================================
+  FILES
+=======================================================================================
+
+README.doxygensupport               This file.
+                                
+plugin/doxygen-support.vim          The doxygen plugin for Vim/gVim.
+
+plugin/doxygen.templates.example    Template file (example).
+
+doc/doxygensupport.txt              The help file for the local online help. 
+=======================================================================================

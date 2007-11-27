@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.8 2007/08/05 09:59:42 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.9 2007/11/27 18:54:41 mehner Exp $
 "      LICENSE:  Copyright (c) 2007, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "1.3"                   " version number of this script; do not change
+let g:DoxygenVersion= "1.4"                   " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -278,6 +278,7 @@ function! DoxygenReadTemplates ( templatefile )
         end
         continue                                            " next line
       endif
+
       "
       " template header
       "
@@ -297,7 +298,13 @@ function! DoxygenReadTemplates ( templatefile )
           let s:Doxy_Attribute[item] = part[1]
         end
       else
+				"
+				" template body
+				"
         if item != ''
+					" Convert \# to #  (preprocessor statements)
+					let line = substitute( line, '\\#', '#','' ) 
+					"
           let s:Doxy_Template[item] = s:Doxy_Template[item].line."\n"
         end
       end

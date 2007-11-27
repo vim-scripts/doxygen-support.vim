@@ -1,12 +1,13 @@
-*doxygensupport.txt*                                         *doxygen-support*
- Doxygen Support                                               August 05 2007
-                              Plugin version 1.3
+*doxygensupport.txt*            Doxygen Support              November 27 2007
+                                                             *doxygen-support*
+                              Plugin version 1.4
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
 This plugin generates a menu and Ex commands from a template file containing
 user defined comment templates to be used for source code documentation with
 Doxygen.
+
 ==============================================================================
  0.   CONTENT                                             *doxygensupport-toc*
 ==============================================================================
@@ -54,12 +55,16 @@ three sorts of entries.
 
 Lines starting with a '#' are comments.
 
+If a line in a template body starts with a '#' (e.g. a C preprocessor
+statement) this character has to be escaped
+(|doxygensupport-doxygen-templates|).
+
 ------------------------------------------------------------------------------
 1.2  Template file macros                     *doxygensupport-template-macros*
 ------------------------------------------------------------------------------
 Macros are optional. The syntax is
 
-|$<macroname>$| = <macroexpansion>
+ $<macroname>$  = <macroexpansion>
 
 A <macroname> starts with a letter followed by optional letters,  digits or
 underscores.
@@ -67,7 +72,7 @@ A <macroexpansion> is the text on the right of the equal sign, starting with
 the first non-whitespace character after the equal sign and ending with the
 last non-whitespace in this line. An example
 
-|$AUTHOR$|  = Dr. Fritz Mehner 
+ $AUTHOR$   = Dr. Fritz Mehner 
 
 An <macroexpansion> may contain other macros to be expanded. The recursion is
 limited by the expansion algorithm to a depth of 10.  The order of the macro
@@ -75,19 +80,19 @@ definitions does not matter. Macro names are case sensitive.
 
 There are a few predefined macros:
 
-|$DATE$|         The preferred date representation for the current locale
+ $DATE$          The preferred date representation for the current locale
                  without the time.
-|$YEAR$|         The year as a decimal number including the century.
-|$TIME$|         The preferred time representation for the current locale
+ $YEAR$          The year as a decimal number including the century.
+ $TIME$          The preferred time representation for the current locale
                  without the date and the time zone or name or abbreviation.
-|$FILE$|         The filename without the path.
-|$PATH$|         The pathname without filename.
-|$CURSOR$|       The cursor postion after the insertion of the template.
+ $FILE$          The filename without the path.
+ $PATH$          The pathname without filename.
+ $CURSOR$        The cursor postion after the insertion of the template.
+ 
+ $sortmenus$     Sorted menus yes/no (see below)
+ $includefile$   Include a template file (see below).
 
-|$sortmenus$|    Sorted menus yes/no (see below)
-|$includefile$|  Include a template file (see below).
-
-REMARKS. Case of letters matters. Do not name a macro|$Id: doxygensupport.txt,v 1.8 2007/08/05 09:10:38 mehner Exp $|if you want this to
+REMARKS. Case of letters matters. Do not name a macro $Id$ if you want this to
 be expanded by a revision control system.
 
 
@@ -97,15 +102,15 @@ be expanded by a revision control system.
 
 The menu items can be sorted with the macro
 
-|$sortmenus$| = yes   
+ $sortmenus$  = yes   
 
 Default is 'no'.
 
 This plugin has an include mechanism. The templates can be split in different
 files. These can be included, e.g.
 
-|$includefile$| = doxygen.cpp.templates
-|$includefile$| = doxygen.java.templates
+ $includefile$  = doxygen.cpp.templates
+ $includefile$  = doxygen.java.templates
 
 Each file will be included only once. The file names may not have a path. The
 path is assumed to be the same as for the main templates file (see
@@ -143,12 +148,21 @@ Here an example template enclosed in delimiting comments:
 #--------------------------------------------------------------
 ==brief+detailed==
 /**
- *  \brief |$CURSOR$|
+ *  \brief  $CURSOR$ 
  *  
  *  Detailed description starts here.
  */
 #--------------------------------------------------------------
 
+The following example contains preprocessor statements. The starting # has to
+be escaped:
+ 
+#--------------------------------------------------------------
+== ifdef-cplusplus == below ==
+\#ifdef  __cplusplus
+extern "C" {
+\#endif
+#--------------------------------------------------------------
 
 Insert mode specification <insert mode>
 ---------------------------------------
@@ -166,23 +180,23 @@ APPEND. A documentation block to be put after a member needs 'append':
 
 #--------------------------------------------------------------
 ==brief-after-member==append==
- /**< \brief|$CURSOR$|*/
+ /**< \brief $CURSOR$ */
 #--------------------------------------------------------------
 
-INSERT. In-text formulas should be put between a pair of |@f$| commands.  The
+INSERT. In-text formulas should be put between a pair of @f$  commands.  The
 following template will be inserted in the running text. The cursor will be
 set inside the construct.
 
 #--------------------------------------------------------------
 == Formula-in-text == insert ==
-|@f$||$CURSOR$||@f$|
+ @f$ $CURSOR$ @f$ 
 #--------------------------------------------------------------
 
 All templates can have more than one line.
 
 
-HINT. According to the syntax of the headline the 
-'append' followed by '==' in the line
+HINT. According to the syntax of the headline the 'append' followed by '==' in
+the line
 
 ==brief-after-member==append==
 
