@@ -1,4 +1,4 @@
-README for doxygen-support.vim (Version 1.4) / November 27 2007
+README for doxygen-support.vim (Version 2.0) / March 05 2008
 
   *  INSTALLATION
   *  RELEASE NOTES 
@@ -17,30 +17,49 @@ snippets.
   INSTALLATION
 =======================================================================================
 
-Copy the zip archive  doxygen-support.zip to $HOME/.vim/ or $VIM/vimfiles
-(on the Windows platforms) and run
+The subdirectories in the zip archive  doxygen-support.zip  mirror the directory
+structure which is needed below the local installation directory $HOME/.vim/
+or $VIM\vimfiles (on the Windows platforms).
+
+(1) Copy the zip archive  doxygen-support.zip to $HOME/.vim/ or $VIM/vimfiles
+    (on the Windows platforms) and run
 
       unzip doxygen-support.zip
 
-For a quick start rename
+    If you have already an older version of doxygen-support and you have modified
+    the template files you may want to save your templates first or copy the 
+    files from the archive by hand.
 
-  $HOME/.vim/plugin/doxygen.templates.example
+(2) Loading of plugin files must be enabled. If not use
+      :filetype plugin on
+    This is the minimal content of the file '$HOME/.vimrc'. Create one if there
+    is none. 
 
-into
+(3) Set at least some personal details in the main file 
+    'doxygen-support/templates/doxygen.templates'. 
+    Use my settings ther as an example.
 
-  $HOME/.vim/plugin/doxygen.templates
+(4) Restart gVim/Vim generate the help tags 
 
-Start gVim or Vim. Generate the help tags with
+      :helptags ~/.vim/doc
 
-  :helptags ~/.vim/doc
+    and look at the doxygensupport help with
 
-Read the helpfile with
+      :h doxygensupport
 
-  :h doxygensupport
+  For a system-wide installation please see the help file 'doc/doxygensupport.txt'.
 
 =======================================================================================
   RELEASE NOTES 
 =======================================================================================
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 2.0
+---------------------------------------------------------------------------------------
+- Systemwide installation now possible.
+- Visual mode insert (surround a marked region).
+- Dialog to ask for parameters possible.
+- Automatic generation of submenu titles.
+
 ---------------------------------------------------------------------------------------
   RELEASE NOTES FOR VERSION 1.4
 ---------------------------------------------------------------------------------------
@@ -72,11 +91,11 @@ Read the helpfile with
   FILES
 =======================================================================================
 
-README.doxygensupport               This file.
+doc/doxygensupport.txt              The help file for the local online help. 
+
+doxygen-support/templates/*         The template files (examples).
                                 
 plugin/doxygen-support.vim          The doxygen plugin for Vim/gVim.
 
-plugin/doxygen.templates.example    Template file (example).
-
-doc/doxygensupport.txt              The help file for the local online help. 
+README.doxygensupport               This file.
 =======================================================================================

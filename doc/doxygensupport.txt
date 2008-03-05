@@ -1,6 +1,6 @@
-*doxygensupport.txt*            Doxygen Support              November 27 2007
+*doxygensupport.txt*            Doxygen Support                 March 05 2008
                                                              *doxygen-support*
-                              Plugin version 1.4
+                              Plugin version 2.0
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
@@ -21,6 +21,7 @@ Doxygen.
  3.   The Doxygen Ex commands               |doxygensupport-ex-commands|
  4.   Rebuilding menus and Ex commands      |doxygensupport-rebuild|
  5.   Customization                         |doxygensupport-customization|
+ 6.   System-wide installation              |doxygensupport-system-wide|
 
  How to add this help file to Vim's help    |add-local-help|
 
@@ -72,13 +73,23 @@ A <macroexpansion> is the text on the right of the equal sign, starting with
 the first non-whitespace character after the equal sign and ending with the
 last non-whitespace in this line. An example
 
- $AUTHOR$   = Dr. Fritz Mehner 
+ $AUTHOR$           "Dr. fritz Mehner" 
+
+There are a few predefined macro names:
+
+ $AUTHOR$           
+ $AUTHORREF$       
+ $EMAIL$           
+ $COMPANY$         
+ $PROJECT$         
+ $COPYRIGHTHOLDER$ 
 
 An <macroexpansion> may contain other macros to be expanded. The recursion is
 limited by the expansion algorithm to a depth of 10.  The order of the macro
 definitions does not matter. Macro names are case sensitive.
 
-There are a few predefined macros:
+There are a few other predefined macros with fixed meaning (but see also
+ |doxygentemplates-date| for date and time representation):
 
  $DATE$          The preferred date representation for the current locale
                  without the time.
@@ -87,13 +98,26 @@ There are a few predefined macros:
                  without the date and the time zone or name or abbreviation.
  $FILE$          The filename without the path.
  $PATH$          The pathname without filename.
- $CURSOR$        The cursor postion after the insertion of the template.
+ $BASENAME$      Filename without path and suffix.
+ $SUFFIX$        The filename extension.
  
  $sortmenus$     Sorted menus yes/no (see below)
  $includefile$   Include a template file (see below).
 
-REMARKS. Case of letters matters. Do not name a macro $Id$ if you want this to
+REMARKS. Case of letters matters. Do not name a macro 'Id' if you want this to
 be expanded by a revision control system.
+
+ ----------------------------------------------------------------------------
+ PREDEFINED TAGS
+ ----------------------------------------------------------------------------
+ <CURSOR>           The cursor position after insertion of a template
+ <SPLIT>            The split point when inserting in visual mode
+                    (see|doxygensupport-doxygen-templates|)
+
+A dependent template file can start with its own macro section. There is no
+need to have all user defined macros in the master file.
+When the first template definition is found (see below) macro definitions are
+no longer recognized.
 
 
 ------------------------------------------------------------------------------
@@ -148,39 +172,40 @@ Here an example template enclosed in delimiting comments:
 #--------------------------------------------------------------
 ==brief+detailed==
 /**
- *  \brief  $CURSOR$ 
+ *  \brief  <CURSOR> 
  *  
  *  Detailed description starts here.
  */
 #--------------------------------------------------------------
 
-The following example contains preprocessor statements. The starting # has to
-be escaped:
- 
-#--------------------------------------------------------------
-== ifdef-cplusplus == below ==
-\#ifdef  __cplusplus
-extern "C" {
-\#endif
-#--------------------------------------------------------------
+------------------------------------------------------------------------------
+INSERT MODE SPECIFICATION
+------------------------------------------------------------------------------
 
-Insert mode specification <insert mode>
----------------------------------------
-
-There are 4 insert modes: 'below', 'above', 'append', and 'insert'. The
-default is 'below' The insert mode specification is optional. A wrong
+There are 4 insert modes: 'above', 'append', 'below', 'insert', and 'start'.
+The default is 'below' The insert mode specification is optional. A wrong
 specification will be replaced by the default.
 
-BELOW. A comment block will typically be inserted below the cursor.
+  above     insert the template before the current line
+  append    append the template to the current line 
+  below     insert the template below the current line
+  insert    insert the template at the cursor position
+  start     insert the template before the first line of the buffer
 
-ABOVE. A file comment will usually be inserted above the first line of a file
-and therefore has 'above'.
-
-APPEND. A documentation block to be put after a member needs 'append':
+Examples:
 
 #--------------------------------------------------------------
 ==brief-after-member==append==
- /**< \brief $CURSOR$ */
+ /**< \brief <CURSOR> */
+#--------------------------------------------------------------
+
+#--------------------------------------------------------------
+== brief,detailed ==
+/**
+ * @brief <CURSOR>
+ * 
+ * Detailed description starts here.
+ */
 #--------------------------------------------------------------
 
 INSERT. In-text formulas should be put between a pair of @f$  commands.  The
@@ -188,13 +213,68 @@ following template will be inserted in the running text. The cursor will be
 set inside the construct.
 
 #--------------------------------------------------------------
-== Formula-in-text == insert ==
- @f$ $CURSOR$ @f$ 
+== formula-in-text == insert == 
+ @f$ <CURSOR> @f$ 
 #--------------------------------------------------------------
-
 All templates can have more than one line.
 
+Templates for the visual mode can use <SPLIT>. The text before <SPLIT> will
+than be inserted above/before the marked area, the text after <SPLIT> will be
+inserted below/behind the marked area. An example:
 
+#--------------------------------------------------------------
+== formula-in-text == insert == 
+ @f$ <CURSOR><SPLIT> @f$ 
+#--------------------------------------------------------------
+
+Templates not containing <SPLIT> do not have a visual mode.
+
+
+------------------------------------------------------------------------------
+USER INPUT
+------------------------------------------------------------------------------
+
+If the usage of a yet undefined user macro starts with a question mark the
+user will be asked for the replacement first, e.g. with the following template
+
+  == Cpp.class ==
+  ///
+  /// @class $?CLASSNAME$
+  /// @brief <CURSOR>
+  /// 
+  /// Description of class $CLASSNAME$ starts here.
+  ///
+
+The user can specify the function name which then will be applied twice. If the
+macro was already in use the old value will be suggested as default.
+
+------------------------------------------------------------------------------
+MACRO MANIPULATION
+------------------------------------------------------------------------------
+
+A macro expansion can be controlled by the following attributes
+
+  :l    change macro text to lowercase
+  :u    change macro text to uppercase
+  :c    capitalize macro text
+  :L    legalize name
+
+Legalization means:
+ - replace all whitespaces by underscores
+ - replace all non-word characters by underscores
+ - replace '+' and '-' by underscore
+
+EXAMPLE. To ask for a class name and to make sure that it will start with an uppercase
+letter write
+
+  == Cpp.class ==
+  ///
+  /// @class $?CLASSNAME:c$
+  /// @brief <CURSOR>
+  /// 
+  ///
+
+------------------------------------------------------------------------------
 HINT. According to the syntax of the headline the 'append' followed by '==' in
 the line
 
@@ -352,6 +432,69 @@ done by the following line in '.vimrc'
 
 The variable g:Doxy_TemplateFile can be used to change the name and the path
 of the template file.
+
+ ----------------------------------------------------------------------------
+ USER DEFINED FORMATS FOR DATE AND TIME               *doxygentemplates-date*
+ ----------------------------------------------------------------------------
+The format for $DATE$ ,$TIME$ , and$YEAR$ can be set by the user. The
+defaults are
+    $DATE$        '%x'    
+    $TIME$        '%X'    
+    $YEAR$        '%Y'        
+See the manual page of the C function strftime() for the format.  The accepted
+format depends on your system, thus this is not portable!  The maximum length
+of the result is 80 characters.
+
+User defined formats can be set using the following global variables in
+~/.vimrc ,  e.g.
+    let g:Doxy_FormatDate            = '%D'
+    let g:Doxy_FormatTime            = '%H:%M'
+    let g:Doxy_FormatYear            = 'year %Y'
+
+------------------------------------------------------------------------------
+6  System-wide installation (Unix/Linux only)     *doxygensupport-system-wide*
+------------------------------------------------------------------------------
+
+A system-wide installation (one installation for all users) is done as
+follows.
+
+As *** SUPERUSER *** :
+
+(1) Find the Vim installation directory.
+The Vim ex command ':echo $VIM' gives '/usr/local/share/vim' or something like
+that. Beyond this directory you will find the Vim installation,  e.g. in
+'/usr/local/share/vim/vim71' if Vim version 7.1 has been installed.
+
+(2) Create a new subdirectory 'vimfiles', e.g. '/usr/local/share/vim/vimfiles'.
+
+(3) Install Doxygen Support
+Copy the archive doxygen-support.zip to this new directory and unpack it:
+  unzip doxygen-support.zip
+
+(4) Generate the help tags:
+  :helptags $VIM/vimfiles/doc
+
+
+As *** USER *** :
+
+Create your private snippet directory:
+
+  mkdir --parents  ~/.vim/doxygen-support/templates 
+
+In addition to the global template files you can have your own below this
+directory. After this plugin has read the global files the local ones will be
+read starting with the local file 'doxygen.templates'. This file can also have
+(local) include files.
+
+The pathnames can be chnaged by setting the following global variables in your
+'~/.vimrc'. 
+
+ let g:Doxy_GlobalTemplateFile = $VIM./'vimfiles/doxygen-support/templates/doxygen.templates'
+ let g:Doxy_GlobalTemplateDir  = $VIM./'vimfiles/doxygen-support/templates/'
+ let g:Doxy_LocalTemplateFile  = $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
+ let g:Doxy_LocalTemplateDir   = $HOME.'/.vim/doxygen-support/templates/'
+
+The right sides above show the default values.
 
 ----------------------------------------------------------------------
 vim:tw=78:noet:ts=2:ft=help:norl:
