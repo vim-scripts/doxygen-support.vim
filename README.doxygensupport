@@ -1,4 +1,4 @@
-README for doxygen-support.vim (Version 2.0) / March 05 2008
+README for doxygen-support.vim (Version 2.0.1) / March 08 2008
 
   *  INSTALLATION
   *  RELEASE NOTES 
@@ -52,6 +52,13 @@ or $VIM\vimfiles (on the Windows platforms).
 =======================================================================================
   RELEASE NOTES 
 =======================================================================================
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 2.0.1
+---------------------------------------------------------------------------------------
+- Windows: Missing variable prevents correct plugin loading (thanks to Martin Banszel)
+- Documentation corrected.
+
 ---------------------------------------------------------------------------------------
   RELEASE NOTES FOR VERSION 2.0
 ---------------------------------------------------------------------------------------

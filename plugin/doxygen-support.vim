@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.12 2008/03/05 15:34:48 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.13 2008/03/08 10:50:08 mehner Exp $
 "      LICENSE:  Copyright (c) 2007-2008, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "2.0"                   " version number of this script; do not change
+let g:DoxygenVersion= "2.0.1"               " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -42,8 +42,12 @@ let g:DoxygenVersion= "2.0"                   " version number of this script; d
 let s:MSWIN =   has("win16") || has("win32") || has("win64") || has("win95")
 " 
 if  s:MSWIN
-  let s:plugin_dir  	= $VIM.'\vimfiles\plugin\'
-	let s:installation	= 'system'
+	let s:installation						= 'system'
+	let s:plugin_dir							= $VIM.'\vimfiles\'
+	let s:Doxy_GlobalTemplateFil	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
+	let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
+	let s:Doxy_LocalTemplateFile	= s:Doxy_GlobalTemplateFile
+	let s:Doxy_LocalTemplateDir 	= s:Doxy_GlobalTemplateDir
 else
   let s:plugin_dir  	= $HOME.'/.vim/'
 	"
@@ -53,12 +57,12 @@ else
 		"
 		" system wide installation 
 		"
-		let s:installation							= 'system'
-		let s:plugin_dir  							= $VIM.'/vimfiles/'
-		let s:Doxy_GlobalTemplateFile   = s:plugin_dir.'doxygen-support/templates/doxygen.templates'
-		let s:Doxy_GlobalTemplateDir    = fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
-		let s:Doxy_LocalTemplateFile    = $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
-		let s:Doxy_LocalTemplateDir     = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+		let s:installation						= 'system'
+		let s:plugin_dir  						= $VIM.'/vimfiles/'
+		let s:Doxy_GlobalTemplateFil	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
+		let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
+		let s:Doxy_LocalTemplateFile	= $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
+		let s:Doxy_LocalTemplateDir 	= fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
 	else
 		"
 		" user installation assumed

@@ -1,6 +1,6 @@
-*doxygensupport.txt*            Doxygen Support                 March 05 2008
+*doxygensupport.txt*            Doxygen Support                 March 08 2008
                                                              *doxygen-support*
-                              Plugin version 2.0
+                             Plugin version 2.0.1
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
@@ -73,7 +73,7 @@ A <macroexpansion> is the text on the right of the equal sign, starting with
 the first non-whitespace character after the equal sign and ending with the
 last non-whitespace in this line. An example
 
- $AUTHOR$           "Dr. fritz Mehner" 
+ $AUTHOR$           "Dr. Fritz Mehner" 
 
 There are a few predefined macro names:
 
@@ -377,25 +377,19 @@ The Ex command leader can be changed (see|doxygensupport-customization|).
 ==============================================================================
 
 Rebuilding the menu(s) and the Ex commands is necessary after changing the
-template file. 
+template file.
+Local  template files: see |doxygensupport-template-file|
+Global template files: see |doxygensupport-system-wide|
 
 GUI (gVim or Vim in an xterm)
 ----------------------------- 
-If the template file is not open it can be opened from the first menu item
-'Doxy (rebuild)'. Now edit the template file. Choosing the first menu item
-again will save this buffer to the template file, reread it, and rebuild the
-menu and the Ex commands. 
-If the template file is already open choosing 'Doxygen' saves this buffer and
-starts the rebuild immediately.
+Edit the template file. Choosing the first menu item will reread the template
+files and rebuild the menu and the Ex commands. 
 
 Console (Vim)
 -------------
-If the template file is not open it can be opened with the Ex command
-'Doxygen'. This command is always defined. Now edit the template file.  Using
-the command 'Doxygen' again will save this buffer to the template file, reread
-it, and rebuild the Ex commands. 
-If the template file is already open applying 'Doxygen' saves this buffer and
-starts the rebuild immediately.
+Using the command ':Doxygen' will reread the template files and rebuild the Ex
+commands. 
 
 ==============================================================================
 5.  CUSTOMIZATION                               *doxygensupport-customization*
