@@ -1,4 +1,4 @@
-README for doxygen-support.vim (Version 2.0.1) / March 08 2008
+README for doxygen-support.vim (Version 2.0.2) / March 22 2008
 
   *  INSTALLATION
   *  RELEASE NOTES 
@@ -52,6 +52,13 @@ or $VIM\vimfiles (on the Windows platforms).
 =======================================================================================
   RELEASE NOTES 
 =======================================================================================
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 2.0.2
+---------------------------------------------------------------------------------------
+- Windows: Missing variable from 2.0.1 was still wrong.
+- Bugfix: variable g:Doxy_LoadMenus had no effect.
+- Documentation corrected.
 
 ---------------------------------------------------------------------------------------
   RELEASE NOTES FOR VERSION 2.0.1

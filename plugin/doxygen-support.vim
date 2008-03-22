@@ -9,7 +9,7 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.13 2008/03/08 10:50:08 mehner Exp $
+"     REVISION:  $Id: doxygen-support.vim,v 1.16 2008/03/22 12:13:05 mehner Exp $
 "      LICENSE:  Copyright (c) 2007-2008, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
@@ -34,7 +34,7 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "2.0.1"               " version number of this script; do not change
+let g:DoxygenVersion= "2.0.2"               " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
@@ -44,7 +44,7 @@ let s:MSWIN =   has("win16") || has("win32") || has("win64") || has("win95")
 if  s:MSWIN
 	let s:installation						= 'system'
 	let s:plugin_dir							= $VIM.'\vimfiles\'
-	let s:Doxy_GlobalTemplateFil	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
+	let s:Doxy_GlobalTemplateFile	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
 	let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
 	let s:Doxy_LocalTemplateFile	= s:Doxy_GlobalTemplateFile
 	let s:Doxy_LocalTemplateDir 	= s:Doxy_GlobalTemplateDir
@@ -59,7 +59,7 @@ else
 		"
 		let s:installation						= 'system'
 		let s:plugin_dir  						= $VIM.'/vimfiles/'
-		let s:Doxy_GlobalTemplateFil	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
+		let s:Doxy_GlobalTemplateFile	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
 		let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
 		let s:Doxy_LocalTemplateFile	= $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
 		let s:Doxy_LocalTemplateDir 	= fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
@@ -133,7 +133,7 @@ let	s:Doxy_MacroFlag						= {	':l' : 'lowercase'			,
 											\							':L' : 'legalize name'	, 
 											\						}
 "
-let s:Doxy_TemplateOverwrittenMsg= 'yes'
+let s:Doxy_TemplateOverwrittenMsg= 'no'
 "
 let s:Doxy_FormatDate						= '%x'
 let s:Doxy_FormatTime						= '%X'
@@ -196,19 +196,28 @@ let	s:Doxy_Menutitle	= {}
 "  DoxygenToolMenuLoad
 "  set the tool menu item (Load Menu)
 "------------------------------------------------------------------------------
-function! DoxygenToolMenuLoad ()
-  amenu   <silent> 40.1000 &Tools.-SEP0- :
-  amenu   <silent> 40.1035 &Tools.Load\ Doxygen\ Menu <C-C>:call DoxygenCreateGuiMenus()<CR>
+function! DoxygenToolMenuLoad ( action )
+	if a:action == 'set'
+		amenu   <silent> 40.1000 &Tools.-SEP0- :
+		amenu   <silent> 40.1035 &Tools.Load\ Doxygen\ Menu <C-C>:call DoxygenCreateGuiMenus()<CR>
+	end
+	if a:action == 'remove'
+		aunmenu <silent> &Tools.Load\ Doxygen\ Menu
+	end
 endfunction    " ----------  end of function DoxygenToolMenuLoad  ----------
 
 "------------------------------------------------------------------------------
 "  DoxygenToolMenuUnload
 "  set the tool menu item (Load Menu)
 "------------------------------------------------------------------------------
-function! DoxygenToolMenuUnload ()
-	aunmenu <silent> &Tools.Load\ Doxygen\ Menu
-	amenu   <silent> 40.1000 &Tools.-SEP0- :
-	amenu   <silent> 40.1035 &Tools.Unload\ Doxygen\ Menu <C-C>:call DoxygenRemoveGuiMenus()<CR>
+function! DoxygenToolMenuUnload ( action )
+	if a:action == 'set'
+		amenu   <silent> 40.1000 &Tools.-SEP0- :
+		amenu   <silent> 40.1035 &Tools.Unload\ Doxygen\ Menu <C-C>:call DoxygenRemoveGuiMenus()<CR>
+	end
+	if a:action == 'remove' 
+    aunmenu <silent> &Tools.Unload\ Doxygen\ Menu
+	end
 endfunction    " ----------  end of function DoxygenToolMenuUnload  ----------
 
 "------------------------------------------------------------------------------
@@ -219,8 +228,9 @@ let s:Doxy_MenuVisible = 0								" state variable controlling the menus
 
 function! DoxygenCreateGuiMenus ()
   if s:Doxy_MenuVisible == 0
-		call DoxygenToolMenuUnload()
-    call DoxygenInitMenu()
+    call DoxygenInitMenu()								" sets s:Doxy_MenuVisible = 1
+    call DoxygenToolMenuLoad('remove')
+		call DoxygenToolMenuUnload('set')
   endif
 endfunction    " ----------  end of function DoxygenCreateGuiMenus  ----------
 
@@ -232,8 +242,8 @@ function! DoxygenRemoveGuiMenus ()
   if s:Doxy_MenuVisible == 1
     "
     exe "aunmenu <silent> ".s:Doxy_RootMenu
-    aunmenu <silent> &Tools.Unload\ Doxygen\ Menu
-    call DoxygenToolMenuLoad()
+		call DoxygenToolMenuUnload('remove')
+    call DoxygenToolMenuLoad('set')
     "
     let s:Doxy_MenuVisible = 0
   endif
@@ -348,9 +358,6 @@ function! DoxygenRebuild ( msg )
 	endif
 
 	call DoxygenBuildCommands()
-	if has("gui_running")
-		call DoxygenInitMenu()
-	endif
 
 endfunction    " ----------  end of function DoxygenRebuild  ----------
 
@@ -484,6 +491,8 @@ function! DoxygenInsertTemplate ( key, mode )
 		echomsg "Template '".a:key."' not found. Please check your template file in '".s:Doxy_GlobalTemplateDir."'"
 		return
 	endif
+	let	pos1	= ''
+	let	pos2	= ''
 
   "------------------------------------------------------------------------------
   "  insert the user macros
@@ -629,22 +638,24 @@ function! DoxygenInsertTemplate ( key, mode )
   "------------------------------------------------------------------------------
   "  position the cursor
   "------------------------------------------------------------------------------
-  exe ":".pos1
-  let mtch = search( '<CURSOR>', "c", pos2 )
-  if mtch != 0
-    if  matchend( getline(mtch) ,'<CURSOR>') == match( getline(mtch) ,"$" )
-      normal 8x
-      :startinsert!
-    else
-      normal 8x
-      :startinsert
-    endif
-	else
-		" to the end of the block; needed for repeated inserts
-		if templatemode == 'below'
-			exe ":".pos2
+	if pos1 != ''
+		exe ":".pos1
+		let mtch = search( '<CURSOR>', "c", pos2 )
+		if mtch != 0
+			if  matchend( getline(mtch) ,'<CURSOR>') == match( getline(mtch) ,"$" )
+				normal 8x
+				:startinsert!
+			else
+				normal 8x
+				:startinsert
+			endif
+		else
+			" to the end of the block; needed for repeated inserts
+			if templatemode == 'below'
+				exe ":".pos2
+			endif
 		endif
-  endif
+	endif
 
 endfunction    " ----------  end of function DoxygenInsertTemplate  ----------
 
@@ -836,11 +847,11 @@ call DoxygenRebuild( 'no' )
 
 if has("gui_running")
 	"
-	call DoxygenCreateGuiMenus()
-	call DoxygenToolMenuLoad()
-	"
 	if s:Doxy_LoadMenus == 'yes'
-		call DoxygenToolMenuUnload()
+		call DoxygenToolMenuLoad('set')
+		call DoxygenCreateGuiMenus()
+	else
+		call DoxygenToolMenuLoad('set')
 	endif
 
 endif

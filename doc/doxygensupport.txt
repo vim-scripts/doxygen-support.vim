@@ -1,6 +1,6 @@
-*doxygensupport.txt*            Doxygen Support                 March 08 2008
+*doxygensupport.txt*            Doxygen Support                 March 22 2008
                                                              *doxygen-support*
-                             Plugin version 2.0.1
+                             Plugin version 2.0.2
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
@@ -398,12 +398,12 @@ commands.
 Several global variables are checked by the script to customize it:
 
 ----------------------------------------------------------------------
-global variable               default value              
+global variable                    default value              
 ----------------------------------------------------------------------
-let g:Doxy_ExCommandLeader    'Doxy'
-let g:Doxy_LoadMenus          'yes'
-let g:Doxy_RootMenu           'Do&xy.'
-let g:Doxy_TemplateFile       $HOME."/.vim/plugin/doxygen.templates"
+let g:Doxy_ExCommandLeader         'Doxy'
+let g:Doxy_LoadMenus               'yes'
+let g:Doxy_RootMenu                'Do&xy.'
+let g:Doxy_TemplateOverwrittenMsg  'no'
 
 The variable g:Doxy_ExCommandLeader can be used to change the default name of
 the Ex command leader (see|doxygensupport-ex-commands|).  The string must
@@ -424,8 +424,12 @@ done by the following line in '.vimrc'
 
   let g:Doxy_RootMenu = "&Plugin.Do&xy."
 
-The variable g:Doxy_TemplateFile can be used to change the name and the path
-of the template file.
+If the variable g:Doxy_TemplateOverwrittenMsg is set to 'yes' all templates
+overwriten by a rebuild will be reported.
+
+There are more global variables for special purposes:
+- see |doxygensupport-system-wide|
+- see |doxygentemplates-date|
 
  ----------------------------------------------------------------------------
  USER DEFINED FORMATS FOR DATE AND TIME               *doxygentemplates-date*
@@ -480,7 +484,7 @@ directory. After this plugin has read the global files the local ones will be
 read starting with the local file 'doxygen.templates'. This file can also have
 (local) include files.
 
-The pathnames can be chnaged by setting the following global variables in your
+The pathnames can be changed by setting the following global variables in your
 '~/.vimrc'. 
 
  let g:Doxy_GlobalTemplateFile = $VIM./'vimfiles/doxygen-support/templates/doxygen.templates'
