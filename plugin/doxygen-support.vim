@@ -9,8 +9,8 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.16 2008/03/22 12:13:05 mehner Exp $
-"      LICENSE:  Copyright (c) 2007-2008, Fritz Mehner
+"     REVISION:  $Id: doxygen-support.vim,v 1.20 2010/07/05 20:31:33 mehner Exp $
+"      LICENSE:  Copyright (c) 2007-2010, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
 "                published by the Free Software Foundation, version 2 of the
@@ -34,13 +34,13 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "2.0.2"               " version number of this script; do not change
+let g:DoxygenVersion= "2.1"               " version number of this script; do not change
 "
 "------------------------------------------------------------------------------
 " Platform specific items
 "------------------------------------------------------------------------------
 let s:MSWIN =   has("win16") || has("win32") || has("win64") || has("win95")
-" 
+"
 if  s:MSWIN
 	let s:installation						= 'system'
 	let s:plugin_dir							= $VIM.'\vimfiles\'
@@ -48,14 +48,15 @@ if  s:MSWIN
 	let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
 	let s:Doxy_LocalTemplateFile	= s:Doxy_GlobalTemplateFile
 	let s:Doxy_LocalTemplateDir 	= s:Doxy_GlobalTemplateDir
+	let s:Doxy_DoxygenExecutable  = 'doxygen.exe'
 else
   let s:plugin_dir  	= $HOME.'/.vim/'
 	"
 	" user / system wide installation (Linux/Unix)
 	"
-	if match( expand("<sfile>"), $VIM ) >= 0
+	if match( expand("<sfile>"), $VIM ) == 0
 		"
-		" system wide installation 
+		" system wide installation
 		"
 		let s:installation						= 'system'
 		let s:plugin_dir  						= $VIM.'/vimfiles/'
@@ -67,32 +68,38 @@ else
 		"
 		" user installation assumed
 		"
-		let s:installation							= 'local'
-		let s:plugin_dir  							= $HOME.'/.vim/'
-		let s:Doxy_GlobalTemplateFile   = ''
-		let s:Doxy_GlobalTemplateDir    = ''
-		let s:Doxy_LocalTemplateFile    = s:plugin_dir.'doxygen-support/templates/doxygen.templates'
-		let s:Doxy_LocalTemplateDir     = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+		let s:installation						= 'local'
+		let s:plugin_dir  						= $HOME.'/.vim/'
+		let s:Doxy_GlobalTemplateFile = ''
+		let s:Doxy_GlobalTemplateDir  = ''
+		let s:Doxy_LocalTemplateFile  = s:plugin_dir.'doxygen-support/templates/doxygen.templates'
+		let s:Doxy_LocalTemplateDir   = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
 	endif
+	let s:Doxy_DoxygenExecutable  = 'doxygen'
 endif
 "
 "------------------------------------------------------------------------------
 "  Control variables (user configurable)
 "------------------------------------------------------------------------------
-let s:Doxy_ExCommandLeader   = 'Doxy'           " Ex command leader
-let s:Doxy_LoadMenus         = 'yes'            " toggle default
-let s:Doxy_RootMenu          = 'Do&xy.'         " name of the root menu (not empty)
+let s:Doxy_ExCommandLeader   		= 'Doxy'          		" Ex command leader
+let s:Doxy_LoadMenus         		= 'yes'           		" toggle default
+let s:Doxy_RootMenu          		= 'Do&xy.'        		" name of the root menu (not empty)
+let s:Doxy_DoxygenErrorFileName	= '.doxygen.errors'
+let s:Doxy_DoxygenLogFileName		= '.doxygen.log'
+let s:Doxy_GuiTemplateBrowser   = 'gui'								" gui / explorer / commandline
 
+let s:Doxy_Doxyfile          		= 'Doxyfile' 	 				" doxygen configuration file (default)
+let s:Doxy_CWD		          		= ''      		 				" doxygen working directory
 "
 "------------------------------------------------------------------------------
 "  Control variables (not user configurable)
 "------------------------------------------------------------------------------
-let s:TemplateModes              =	{	
+let s:TemplateModes              =	{
 											\								'above' : '',
 											\								'append': '',
 											\								'below' : 'split',
-											\								'insert': 'split', 
-											\								'start' : '', 
+											\								'insert': 'split',
+											\								'start' : '',
 											\							}
 let s:Doxy_TemplateMode          = {}
 
@@ -120,17 +127,17 @@ let s:Doxy_TemplateSaveMenu      = {}
 let s:Doxy_ExpansionCounter    = {}
 let s:Doxy_Template            = {}
 let s:Doxy_Macro               = {'$sortmenus$'      : 'no',
-											\						'$AUTHOR$'         : 'first name surname', 
+											\						'$AUTHOR$'         : 'first name surname',
 											\						'$AUTHORREF$'      : '',
 											\						'$EMAIL$'          : '',
 											\						'$COMPANY$'        : '',
 											\						'$PROJECT$'        : '',
-											\						'$COPYRIGHTHOLDER$': '' 
+											\						'$COPYRIGHTHOLDER$': ''
 											\						}
-let	s:Doxy_MacroFlag						= {	':l' : 'lowercase'			, 
-											\							':u' : 'uppercase'			, 
-											\							':c' : 'capitalize'		, 
-											\							':L' : 'legalize name'	, 
+let	s:Doxy_MacroFlag						= {	':l' : 'lowercase'			,
+											\							':u' : 'uppercase'			,
+											\							':c' : 'capitalize'		,
+											\							':L' : 'legalize name'	,
 											\						}
 "
 let s:Doxy_TemplateOverwrittenMsg= 'no'
@@ -138,6 +145,8 @@ let s:Doxy_TemplateOverwrittenMsg= 'no'
 let s:Doxy_FormatDate						= '%x'
 let s:Doxy_FormatTime						= '%X'
 let s:Doxy_FormatYear						= '%Y'
+"
+let s:Doxy_Doxyfile_selected 		= 'no' 
 "
 "------------------------------------------------------------------------------
 "  Look for global variables (if any), to override the defaults.
@@ -159,6 +168,9 @@ call s:DoxygenCheckGlobal('Doxy_LocalTemplateDir      ')
 call s:DoxygenCheckGlobal('Doxy_LocalTemplateFile     ')
 call s:DoxygenCheckGlobal('Doxy_RootMenu              ')
 call s:DoxygenCheckGlobal('Doxy_TemplateOverwrittenMsg')
+call s:DoxygenCheckGlobal('Doxy_DoxygenExecutable     ')
+call s:DoxygenCheckGlobal('Doxy_DoxygenErrorFileName  ')
+call s:DoxygenCheckGlobal('Doxy_DoxygenLogFileName    ')
 "
 if s:Doxy_RootMenu == ""
   let s:Doxy_RootMenu = 'Do&xy.'       " use the default
@@ -215,7 +227,7 @@ function! DoxygenToolMenuUnload ( action )
 		amenu   <silent> 40.1000 &Tools.-SEP0- :
 		amenu   <silent> 40.1035 &Tools.Unload\ Doxygen\ Menu <C-C>:call DoxygenRemoveGuiMenus()<CR>
 	end
-	if a:action == 'remove' 
+	if a:action == 'remove'
     aunmenu <silent> &Tools.Unload\ Doxygen\ Menu
 	end
 endfunction    " ----------  end of function DoxygenToolMenuUnload  ----------
@@ -255,8 +267,26 @@ endfunction    " ----------  end of function DoxygenRemoveGuiMenus  ----------
 "------------------------------------------------------------------------------
 function! DoxygenInitMenu ()
   "
-  silent exe "amenu .1 ".s:Doxy_RootMenu.s:Doxy_Menuheader.'\ \ (rebuild)    <Esc><Esc>:call DoxygenRebuild( "yes" )<CR>'
+  silent exe "amenu .1 ".s:Doxy_RootMenu.'Doxygen              <Nop>'
   silent exe "amenu .1 ".s:Doxy_RootMenu.'-Sep00-    :'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'-Sep01-    :'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.Run<Tab>Doxy     <Nop>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep02-    :'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.run\ doxygen			   						:call DoxygenRun()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep03-    :'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.select\ working\ directory			:call DoxygenSelectWorkingDir()<CR><CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.select\ config\.\ file   				:call DoxygenSelectConfigFile()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ config\.\ file    				:call DoxygenEditConfigFile()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.generate\ a\ config\.\ file			:call DoxygenGenerateConfigFile()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep04-    :'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates        :call DoxygenEditTemplates("local")<CR>'
+  silent exe "imenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates   <C-C>:call DoxygenEditTemplates("local")<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates       :call DoxygenEditTemplates("global")<CR>'
+  silent exe "imenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates  <C-C>:call DoxygenEditTemplates("global")<CR>'
+         exe "amenu .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates             :call DoxygenRebuild("yes")<CR>'
+         exe "imenu .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates        <C-C>:call DoxygenRebuild("yes")<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep05-           <Nop>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.plugin\ settings          <C-C>:call DoxygenSettings()<CR>'
 
   "------------------------------------------------------------------------------
   "  remove existing menus (if any)
@@ -323,6 +353,55 @@ function! DoxygenInitMenu ()
 endfunction    " ----------  end of function DoxygenInitMenu  ----------
 
 "------------------------------------------------------------------------------
+"  DoxygenBrowseTemplateFiles     {{{1
+"------------------------------------------------------------------------------
+function! DoxygenBrowseTemplateFiles ( type )
+	let	l:tmpfiledir	= eval('s:Doxy_'.a:type.'TemplateDir')
+	if filereadable( eval( 's:Doxy_'.a:type.'TemplateFile' ) )
+		if has("browse") && s:Doxy_GuiTemplateBrowser == 'gui'
+			let	l:templatefile	= browse(0,"edit a template file", l:tmpfiledir, "" )
+		else
+				let	l:templatefile	= ''
+			if s:Doxy_GuiTemplateBrowser == 'explorer'
+				exe ':Explore '.l:tmpfiledir
+			endif
+			if s:Doxy_GuiTemplateBrowser == 'commandline'
+				:redraw!
+				let	l:templatefile	= input("edit a template file [tab compl.] ", l:tmpfiledir, "file" )
+			endif
+		endif
+		if l:templatefile != ""
+			:execute "update! | split | edit ".l:templatefile
+		endif
+	else
+		echomsg a:type." template file does not exist or is not readable."
+	endif
+endfunction    " ----------  end of function DoxygenBrowseTemplateFiles  ----------
+
+"------------------------------------------------------------------------------
+"  DoxygenEditTemplates     {{{1
+"------------------------------------------------------------------------------
+function! DoxygenEditTemplates ( type )
+	"
+	if a:type == 'global'
+		if s:installation == 'system'
+			call DoxygenBrowseTemplateFiles('Global')
+		else
+			echomsg "Doxygen-Support is user installed: no global template file"
+		endif
+	endif
+	"
+	if a:type == 'local'
+		if s:installation == 'system'
+			call DoxygenBrowseTemplateFiles('Global')
+		else
+			call DoxygenBrowseTemplateFiles('Local')
+		endif
+	endif
+	"
+endfunction    " ----------  end of function DoxygenEditTemplates  ----------
+
+"------------------------------------------------------------------------------
 "  DoxygenRebuild
 "  rebuild commands and the menu from the (changed) template file
 "------------------------------------------------------------------------------
@@ -334,7 +413,7 @@ function! DoxygenRebuild ( msg )
   "     update the template file
   "     reread the template file
   "     rebuild commands and menus
-  "   (1.2) 
+  "   (1.2)
   "     update the current buffer
   "     open the template file in a new window for editing
   "-------------------------------------------------------------------------------
@@ -344,7 +423,7 @@ function! DoxygenRebuild ( msg )
 	let	s:Doxy_Menutitle		= {}
 
 	if s:installation == 'system' && filereadable( s:Doxy_GlobalTemplateFile )
-		call DoxygenReadTemplates( s:Doxy_GlobalTemplateFile ) 
+		call DoxygenReadTemplates( s:Doxy_GlobalTemplateFile )
 		if a:msg == 'yes'
 			echomsg "doxygen comments rebuilt from global file '".s:Doxy_GlobalTemplateFile."'"
 		end
@@ -431,7 +510,7 @@ function! DoxygenReadTemplates ( templatefile )
 				"
         if item != ''
 					" Convert \# to #  (preprocessor statements)
-					let line = substitute( line, '\\#', '#','' ) 
+					let line = substitute( line, '\\#', '#','' )
 					"
           let s:Doxy_Template[item] = s:Doxy_Template[item].line."\n"
         endif
@@ -501,7 +580,7 @@ function! DoxygenInsertTemplate ( key, mode )
 	" use internal formatting to avoid conficts when using == below
 	"
 	let	equalprg_save	= &equalprg
-	set equalprg= 
+	set equalprg=
 
   let templatemode  = s:Doxy_TemplateMode[a:key]
 
@@ -520,7 +599,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			let pos1  = line(".")+1
 			put  =val
 			let pos2  = line(".")
-			" proper indenting 
+			" proper indenting
 			exe ":".pos1
 			let ins	= pos2-pos1+1
 			exe "normal ".ins."=="
@@ -533,7 +612,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			let pos1  = line(".")
 			put! =val
 			let pos2  = line(".")
-			" proper indenting 
+			" proper indenting
 			exe ":".pos1
 			let ins	= pos2-pos1+1
 			exe "normal ".ins."=="
@@ -546,7 +625,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			let pos1  = 1
 			put! =val
 			let pos2  = line(".")
-			" proper indenting 
+			" proper indenting
 			exe ":".pos1
 			let ins	= pos2-pos1+1
 			exe "normal ".ins."=="
@@ -568,7 +647,7 @@ function! DoxygenInsertTemplate ( key, mode )
 		if templatemode == 'insert'
 			let val   = substitute( val, '\n$', '', '' )
 			let pos1  = line(".")
-			let pos2  = pos1 + count( split(val,'\zs'), "\n" ) 
+			let pos2  = pos1 + count( split(val,'\zs'), "\n" )
 			" assign to the unnamed register "" :
 			let @"=val
 			normal p
@@ -596,7 +675,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			echomsg 'SPLIT missing in template '.a:key
 		endif
 		"
-		" 'visual' and mode 'insert': 
+		" 'visual' and mode 'insert':
 		"   <part0><marked area><part1>
 		" part0 and part1 can consist of several lines
 		"
@@ -610,7 +689,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			exe ':s/'.string.'/'.replacement.'/'
 		endif
 		"
-		" 'visual' and mode 'below': 
+		" 'visual' and mode 'below':
 		"   <part0>
 		"   <marked area>
 		"   <part1>
@@ -624,7 +703,7 @@ function! DoxygenInsertTemplate ( key, mode )
 			let pos1  = line("'<") - len(split(part[0], '\n' ))
 			let pos2  = line("'>") + len(split(part[1], '\n' ))
 			""			echo part[0] part[1] pos1 pos2
-			"			" proper indenting 
+			"			" proper indenting
 			exe ":".pos1
 			let ins	= pos2-pos1+1
 			exe "normal ".ins."=="
@@ -726,7 +805,7 @@ function! DoxygenExpandUserMacros ( key )
 			let macroname	= '$'.match[1].'$'
 
 
-			if has_key( s:Doxy_Macro, macroname ) 
+			if has_key( s:Doxy_Macro, macroname )
 				"-------------------------------------------------------------------------------
 				"   check for recursion
 				"-------------------------------------------------------------------------------
@@ -782,7 +861,7 @@ function! DoxygenApplyFlag ( val, flag )
 	end
 	"
 	" flag not valid
-	return a:val			
+	return a:val
 endfunction    " ----------  end of function DoxygenApplyFlag  ----------
 "
 "------------------------------------------------------------------------------
@@ -818,7 +897,7 @@ endfunction    " ----------  end of function DoxygenInsertDateAndTime  ---------
 "-------------------------------------------------------------------------------
 function! DoxygenLegalizeName ( name )
 	let identifier = substitute(     a:name, '\s\+',  '_', 'g' )
-	let identifier = substitute( identifier, '\W\+',  '_', 'g' ) 
+	let identifier = substitute( identifier, '\W\+',  '_', 'g' )
 	let identifier = substitute( identifier, '_\+', '_', 'g' )
 	return identifier
 endfunction    " ----------  end of function DoxygenLegalizeName  ----------
@@ -829,13 +908,163 @@ endfunction    " ----------  end of function DoxygenLegalizeName  ----------
 function! DoxygenInput ( promp, text )
 	echohl Search																					" highlight prompt
 	call inputsave()																			" preserve typeahead
-	let	retval=input( a:promp, a:text )										" read input
+	let	retval=input( a:promp, a:text )			" read input
 	call inputrestore()																		" restore typeahead
 	echohl None																						" reset highlighting
 	let retval  = substitute( retval, '^\s\+', "", "" )		" remove leading whitespaces
 	let retval  = substitute( retval, '\s\+$', "", "" )		" remove trailing whitespaces
 	return retval
 endfunction    " ----------  end of function DoxygenInput ----------
+"
+"------------------------------------------------------------------------------
+"  DoxygenRun: run doxygen
+"------------------------------------------------------------------------------
+function! DoxygenRun (  )
+
+	if executable( s:Doxy_DoxygenExecutable ) != 1
+    echomsg "doxygen executable '".s:Doxy_DoxygenExecutable."' does not exist or is not executable."
+		return
+	endif
+
+	exe	":cclose"
+	" update : write source file if necessary
+	exe	":update"
+
+ 	setlocal errorformat=%f:%l:\ %m
+	"
+	" redirect errors to an error file
+	"
+	let cwdsave	= getcwd()
+	exe ":lchdir ".s:Doxy_CWD
+	"
+	if !filereadable( fnamemodify ( s:Doxy_Doxyfile, ':t' ) )
+		silent call DoxygenSelectConfigFile ()
+	endif
+	"
+	" change to the working directory
+	"
+	:redraw!
+	echomsg " ... doxygen running ... "
+	silent exe ':!'.s:Doxy_DoxygenExecutable.' '.s:Doxy_Doxyfile.' 1> '.s:Doxy_DoxygenLogFileName.' 2> '.s:Doxy_DoxygenErrorFileName
+	"
+	" read error file, open error window if necessary
+	"
+	if getfsize( s:Doxy_DoxygenErrorFileName ) > 0
+		exe	':cf '.s:Doxy_DoxygenErrorFileName
+		exe	':botright cwindow'
+	else
+    echomsg "doxygen : no warnings/errors"
+	endif
+	"
+	" back to the last directory
+	"
+	exe ":lchdir ".cwdsave
+
+endfunction    " ----------  end of function DoxygenRun ----------
+"
+"------------------------------------------------------------------------------
+"  DoxygenSelectWorkingDir: select a doxygen configuration file
+"------------------------------------------------------------------------------
+function! DoxygenSelectWorkingDir (  )
+	if has("browse")
+		let	startdir	= fnamemodify( s:Doxy_CWD , ':p:h' )
+		let s:Doxy_CWD=browsedir( 'working directory from which doxygen will run ', startdir )
+	else
+		:redraw!
+		let	s:Doxy_CWD=input( 'working directory from which doxygen will run [tab compl.] ', s:Doxy_CWD, 'dir' )
+	end
+	if s:Doxy_CWD != ''
+		let s:Doxy_CWD	= fnamemodify( s:Doxy_CWD , ':p' )
+		echomsg "doxygen working directory : '".s:Doxy_CWD."'"
+	endif
+endfunction    " ----------  end of function DoxygenSelectWorkingDir ----------
+"
+"------------------------------------------------------------------------------
+"  DoxygenSelectConfigFile: select a doxygen configuration file
+"------------------------------------------------------------------------------
+function! DoxygenSelectConfigFile (  )
+	if has("browse")
+		let doxyfile=browse( '', 'select a doxygen configuration file', s:Doxy_CWD, '' )
+	else
+		:redraw!
+		let	doxyfile=input( 'select a doxygen configuration file [tab compl.] ', '', 'file' )
+	end
+	let s:Doxy_Doxyfile	= fnamemodify( doxyfile, ':p'   )
+	let s:Doxy_CWD			= fnamemodify( doxyfile, ':p:h' )
+  echomsg "doxygen configuration file '".s:Doxy_Doxyfile."'"
+	if s:Doxy_Doxyfile != ''
+		let s:Doxy_Doxyfile_selected 		= 'yes' 
+	endif
+endfunction    " ----------  end of function DoxygenSelectConfigFile ----------
+"
+"------------------------------------------------------------------------------
+"  DoxygenEditConfigFile: edit a doxygen configuration file
+"------------------------------------------------------------------------------
+function! DoxygenEditConfigFile (  )
+	if s:Doxy_Doxyfile_selected == 'no'
+		call DoxygenSelectConfigFile()
+	endif
+	exe ":e ".s:Doxy_Doxyfile
+endfunction    " ----------  end of function DoxygenEditConfigFile ----------
+"
+"------------------------------------------------------------------------------
+"  DoxygenGenerateConfigFile: open a doxygen configuration file
+"------------------------------------------------------------------------------
+function! DoxygenGenerateConfigFile (  )
+
+	if executable( s:Doxy_DoxygenExecutable ) != 1
+    echomsg "doxygen executable '".s:Doxy_DoxygenExecutable."' does not exist or is not executable."
+		return
+	endif
+
+	if has("browse")
+		let doxyfile	= browse( '', 'generate a doxygen template configuration file', s:Doxy_CWD, 'Doxyfile' )
+	else
+		:redraw!
+		let	doxyfile	= input( 'generate a doxygen template configuration file ', 'Doxyfile', 'file' )
+	end
+	if doxyfile != ''
+		if filereadable( doxyfile )
+			let answer	= DoxygenInput("config file '".doxyfile.'" exists. Overwrite [y/n] : ', 'n' )
+			if answer != 'y'
+				return
+			endif
+		endif
+		exe ":!".s:Doxy_DoxygenExecutable.' -g '.doxyfile
+		if !v:shell_error
+			let	s:Doxy_Doxyfile	= fnamemodify( doxyfile, ':p' )
+			let s:Doxy_Doxyfile_selected 		= 'yes' 
+		endif
+	endif
+
+endfunction    " ----------  end of function DoxygenGenerateConfigFile ----------
+"
+"------------------------------------------------------------------------------
+"  Run : settings     {{{1
+"------------------------------------------------------------------------------
+function! DoxygenSettings ()
+  let txt =     "  Doxygen-Support settings\n\n"
+  let txt = txt.'  doxygen config file :  "'.s:Doxy_Doxyfile."\"\n"
+  let txt = txt.'   working directory  :  "'.s:Doxy_CWD."\"\n"
+  let txt = txt.'         author name  :  "'.s:Doxy_Macro['$AUTHOR$']."\"\n"
+  let txt = txt.'            initials  :  "'.s:Doxy_Macro['$AUTHORREF$']."\"\n"
+  let txt = txt.'               email  :  "'.s:Doxy_Macro['$EMAIL$']."\"\n"
+  let txt = txt.'             company  :  "'.s:Doxy_Macro['$COMPANY$']."\"\n"
+  let txt = txt.'             project  :  "'.s:Doxy_Macro['$PROJECT$']."\"\n"
+  let txt = txt.'    copyright holder  :  "'.s:Doxy_Macro['$COPYRIGHTHOLDER$']."\"\n"
+	" ----- template files  ------------------------
+	if s:installation == 'system'
+		let txt = txt.'global template directory :  '.s:Doxy_GlobalTemplateDir."\n"
+		if filereadable( s:Doxy_LocalTemplateFile )
+			let txt = txt.' local template directory :  '.s:Doxy_LocalTemplateDir."\n"
+		endif
+	else
+		let txt = txt.' local template directory :  '.s:Doxy_LocalTemplateDir."\n"
+	endif
+  let txt = txt."_________________________________________________________________________\n"
+  let txt = txt."  Doxygen-Support, Version ".g:DoxygenVersion." / Dr.-Ing. Fritz Mehner / mehner@fh-swf.de\n\n"
+  echo txt
+endfunction   " ---------- end of function  DoxygenSettings  ----------
 
 "------------------------------------------------------------------------------
 "  INITIALIZE THIS PLUGIN
@@ -856,7 +1085,17 @@ if has("gui_running")
 
 endif
 "
-command! Doxygen   call DoxygenRebuild( 'yes' )
+" define ex commands
+"
+command! DxRun            	   	call DoxygenRun()
+command! DxSelectWorkingDir			call DoxygenSelectWorkingDir()
+command! DxSelectConfigFile			call DoxygenSelectConfigFile()
+command! DxEditConfigFile				call DoxygenEditConfigFile()
+command! DxGenerateConfigFile		call DoxygenGenerateConfigFile()
+command! DxEditLocalTemplates		call DoxygenEditTemplates("local")
+command! DxEditGlobalTemplates	call DoxygenEditTemplates("global")
+command! DxReread	            	call DoxygenRebuild("yes")
+command! DxSettings							call DoxygenSettings()
 "
 "------------------------------------------------------------------------------
 "vim: set tabstop=2 shiftwidth=2:

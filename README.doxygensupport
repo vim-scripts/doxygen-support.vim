@@ -1,4 +1,4 @@
-README for doxygen-support.vim (Version 2.0.2) / March 22 2008
+README for doxygen-support.vim (Version 2.1) / July 4 2010
 
   *  INSTALLATION
   *  RELEASE NOTES 
@@ -52,6 +52,12 @@ or $VIM\vimfiles (on the Windows platforms).
 =======================================================================================
   RELEASE NOTES 
 =======================================================================================
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 2.1
+---------------------------------------------------------------------------------------
+- completely new doxygen integration
+- new ex-commands
 
 ---------------------------------------------------------------------------------------
   RELEASE NOTES FOR VERSION 2.0.2

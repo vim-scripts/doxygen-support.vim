@@ -31,6 +31,9 @@
 /// @return 
 ///
 #--------------------------------------------------------------
+== Cpp.note == below ==
+/// @note   <CURSOR>
+#--------------------------------------------------------------
 == Cpp.FILE-header == start ==
 ///
 ///      @file  $FILE$
@@ -42,7 +45,7 @@
 ///
 ///  @internal
 ///    Created  $DATE$
-///   Revision  ---
+///   Revision  $Id: doxygen.cpp.templates,v 1.3 2010/07/06 09:20:12 mehner Exp $
 ///   Compiler  gcc/g++
 ///    Company  $COMPANY$
 ///  Copyright  $COPYRIGHT$

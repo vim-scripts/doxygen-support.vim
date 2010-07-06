@@ -3,13 +3,13 @@
 # =============================================================
 #
 $AUTHOR$    = Dr. Fritz Mehner 
-$AUTHORREF$ = mn
-$EMAIL$     = mehner@fh-sf.de
+$AUTHORREF$ = fgm
+$EMAIL$     = mehner@fh-swf.de
 $COMPANY$   = FH Südwestfalen, Iserlohn
 $COPYRIGHT$ = Copyright (c) $YEAR$, $AUTHOR$
-$sortmenus$	= no
+$sortmenus$ = no
 
-$includefile$	= doxygen.cpp.templates
+$includefile$   = doxygen.cpp.templates
 
 #
 # =============================================================
@@ -38,9 +38,9 @@ $includefile$	= doxygen.cpp.templates
 #--------------------------------------------------------------
 == function ==
 /**
- * @brief  <CURSOR>
- * @param  
- * @return 
+ * @brief   <CURSOR>
+ * @param   
+ * @return  
  */
 #--------------------------------------------------------------
 == FILE-header == start ==
@@ -54,7 +54,7 @@ $includefile$	= doxygen.cpp.templates
  *
  *   @internal
  *     Created  $DATE$
- *    Revision  ---
+ *    Revision  $Id: doxygen.templates,v 1.3 2010/07/06 09:20:12 mehner Exp $
  *    Compiler  gcc/g++
  *     Company  $COMPANY$
  *   Copyright  $COPYRIGHT$
@@ -69,8 +69,31 @@ $includefile$	= doxygen.cpp.templates
  /**< @brief <CURSOR> */
 #--------------------------------------------------------------
 == formula-in-text == insert == 
- @f$ <CURSOR><SPLIT> @f$ 
+ @f$ <CURSOR><SPLIT> @f$
 #--------------------------------------------------------------
 == formula-separate == below ==
  *    @f[ <CURSOR> @f]
+#--------------------------------------------------------------
+== formula-equarray == below ==
+ * @f{equarray*}{<CURSOR>
+ * @f}
+#--------------------------------------------------------------
+== formula-environment == below ==
+ * @f{$?ENVIRONMENT$}{<CURSOR>
+ * @f}
+#--------------------------------------------------------------
+== note == below ==
+ * @note <CURSOR>
+#--------------------------------------------------------------
+== if-endif == below ==
+ * @if $?condition:u$<CURSOR><SPLIT>
+ * @endif
+#--------------------------------------------------------------
+== latexonly == below ==
+ * @latexonly<CURSOR><SPLIT>
+ * @endlatexonly
+#--------------------------------------------------------------
+== htmlonly == below ==
+ * @htmlonly<CURSOR><SPLIT>
+ * @endhtmlonly
 #--------------------------------------------------------------
