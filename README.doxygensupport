@@ -1,4 +1,4 @@
-README for doxygen-support.vim (Version 2.1) / July 4 2010
+README for doxygen-support.vim (Version 2.2) / March 5 2011
 
   *  INSTALLATION
   *  RELEASE NOTES 
@@ -9,49 +9,102 @@ file containing user defined comment templates to be used for source code
 documentation with Doxygen. The template file can have user defined macros and
 can include other files.
 
-Beside the name this plugin has nothing which is really Doxygen specific. It
-can be used as a versatile general purpose tool to conveniently manage text
-snippets. 
-
 =======================================================================================
   INSTALLATION
 =======================================================================================
 
-The subdirectories in the zip archive  doxygen-support.zip  mirror the directory
-structure which is needed below the local installation directory $HOME/.vim/
-or $VIM\vimfiles (on the Windows platforms).
+(1)  LINUX
+----------
 
-(1) Copy the zip archive  doxygen-support.zip to $HOME/.vim/ or $VIM/vimfiles
-    (on the Windows platforms) and run
+The subdirectories in the zip archive  doxygen-support.zip  mirror the
+directory structure which is needed below the local installation directory
+$HOME/.vim/ (find the value of $HOME with ":echo $HOME" from inside Vim).
+
+(1.0) Save the template files in '$HOME/.vim/doxygen-support/templates/'
+    if you have changed any of them.
+
+(1.1) Copy the zip archive doxygen-support.zip to $HOME/.vim and run
 
       unzip doxygen-support.zip
 
     If you have already an older version of doxygen-support and you have modified
-    the template files you may want to save your templates first or copy the 
-    files from the archive by hand.
+    the template files you may want to save your templates first and suppress
+    overwriting them with
 
-(2) Loading of plugin files must be enabled. If not use
+      unzip doxygen-support.zip  -x *.templates
+
+(1.2) Loading of plugin files must be enabled. If not use
+
       :filetype plugin on
-    This is the minimal content of the file '$HOME/.vimrc'. Create one if there
-    is none. 
 
-(3) Set at least some personal details in the main file 
-    'doxygen-support/templates/doxygen.templates'. 
-    Use my settings ther as an example.
+(1.3) Set at least some personal details in the file 
+    '$HOME/.vim/doxygen-support/templates/doxygen.templates' 
+    Here is the minimal personalization (my settings as an example):
 
-(4) Restart gVim/Vim generate the help tags 
+      $AUTHOR$    = Dr. Fritz Mehner 
+      $AUTHORREF$ = fgm
+      $EMAIL$     = mehner@fh-swf.de
+      $COMPANY$   = FH Südwestfalen, Iserlohn
+      $COPYRIGHT$ = Copyright (c) $YEAR$, $AUTHOR$
 
-      :helptags ~/.vim/doc
+    (Read more about the template system in the plugin documentation)
 
-    and look at the doxygensupport help with
 
-      :h doxygensupport
+(2)  WINDOWS
+------------
 
-  For a system-wide installation please see the help file 'doc/doxygensupport.txt'.
+The subdirectories in the zip archive  doxygen-support.zip  mirror the
+directory structure which is needed below the local installation directory
+$HOME/vimfiles/ (find the value of $HOME with ":echo $HOME" from inside Vim).
+
+(2.0) Save the template files in '$HOME/vimfiles/doxygen-support/templates/' if
+    you have changed any of them.
+
+(2.1) Copy the zip archive doxygen-support.zip to $HOME/vimfiles and run
+
+      unzip doxygen-support.zip
+
+    If you have already an older version of doxygen-support and you have modified
+    the template files you may want to save your templates first and suppress
+    overwriting them with
+
+      unzip doxygen-support.zip  -x *.templates
+
+(2.2) Loading of plugin files must be enabled. If not use
+
+      :filetype plugin on
+
+(2.3) Set at least some personal details in the file 
+    '$HOME/vimfiles/doxygen-support/templates/doxygen.templates' 
+    Here is the minimal personalization (my settings as an example):
+
+      $AUTHOR$    = Dr. Fritz Mehner 
+      $AUTHORREF$ = fgm
+      $EMAIL$     = mehner@fh-swf.de
+      $COMPANY$   = FH Südwestfalen, Iserlohn
+      $COPYRIGHT$ = Copyright (c) $YEAR$, $AUTHOR$
+
+    (Read more about the template system in the plugin documentation)
+
+Restart gVim/Vim generate the help tags  
+
+  :helptags ~/.vim/doc
+
+and look at doxygen-support help with
+
+  :help doxygen-support 
+
+or use the 'help' item in the root menu of this plug-in.
 
 =======================================================================================
   RELEASE NOTES 
 =======================================================================================
+
+---------------------------------------------------------------------------------------
+  RELEASE NOTES FOR VERSION 2.2
+---------------------------------------------------------------------------------------
+- New main menu iten: "help (Doxygen-Support)"
+- Bugfix: detection of a systemwide installation can fail.
 
 ---------------------------------------------------------------------------------------
   RELEASE NOTES FOR VERSION 2.1

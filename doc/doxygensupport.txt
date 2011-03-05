@@ -1,6 +1,6 @@
-*doxygensupport.txt*            Doxygen Support                  July 4 2010
+*doxygensupport.txt*            Doxygen Support                 March 5 2011
                                                              *doxygen-support*
-                              Plugin version 2.1
+                              Plugin version 2.2
                         for Vim version 7.0 and above
                        Fritz Mehner <mehner@fh-swf.de>
 
@@ -548,7 +548,7 @@ User defined formats can be set using the following global variables in
     let g:Doxy_FormatYear            = 'year %Y'
 
 ==============================================================================
-7. System-wide installation (Unix/Linux only)     *doxygensupport-system-wide*
+7. System-wide installation                       *doxygensupport-system-wide*
 ==============================================================================
 
 A system-wide installation (one installation for all users) is done as
@@ -557,11 +557,13 @@ follows.
 As *** SUPERUSER *** :
 
 (1) Find the Vim installation directory.
-The Vim ex command ':echo $VIM' gives '/usr/local/share/vim' or something like
+The Vim Ex command ':echo $VIM' gives '/usr/local/share/vim' or something like
 that. Beyond this directory you will find the Vim installation,  e.g. in
-'/usr/local/share/vim/vim71' if Vim version 7.1 has been installed.
+'/usr/local/share/vim/vim73' if Vim version 7.3 has been installed
+(Windows: 'C:\Program Files\Vim').
 
-(2) Create a new subdirectory 'vimfiles', e.g. '/usr/local/share/vim/vimfiles'.
+(2) Create a new subdirectory 'vimfiles', e.g. '/usr/local/share/vim/vimfiles'
+(Windows: 'C:\Program Files\Vim\vimfiles').
 
 (3) Install Doxygen Support
 Copy the archive doxygen-support.zip to this new directory and unpack it:
@@ -570,27 +572,44 @@ Copy the archive doxygen-support.zip to this new directory and unpack it:
 (4) Generate the help tags:
   :helptags $VIM/vimfiles/doc
 
+SPECIAL CASES. Some Linux distributions use non-standard names for Vim
+directories. SUSE has a directory '/usr/share/vim/site' to put plugins in.
+These directories will not be found automatically.  After installing the
+plugin below '/usr/share/vim/site' the use of the templates will be enabled by
+the following line in '~/.vimrc':
+
+  let g:Doxy_GlobalTemplateFile = '/usr/share/vim/site/doxygen-support/templates/doxygen.templates'
 
 As *** USER *** :
 
 Create your private snippet directory:
 
-  mkdir --parents  ~/.vim/doxygen-support/templates 
+  mkdir --parents  ~/.vim/doxygen-support/codesnippets
 
-In addition to the global template files you can have your own below this
-directory. After this plugin has read the global files the local ones will be
-read starting with the local file 'doxygen.templates'. This file can also have
-(local) include files.
+You may want to copy the snippets coming with this plugin (in
+$VIM/vimfiles/doxygen-support/codesnippets) into the new directory or to set a
+link to the global directory.
 
-The pathnames can be changed by setting the following global variables in your
-'~/.vimrc'. 
+Create your private template directory:
 
- let g:Doxy_GlobalTemplateFile = $VIM./'vimfiles/doxygen-support/templates/doxygen.templates'
- let g:Doxy_GlobalTemplateDir  = $VIM./'vimfiles/doxygen-support/templates/'
- let g:Doxy_LocalTemplateFile  = $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
- let g:Doxy_LocalTemplateDir   = $HOME.'/.vim/doxygen-support/templates/'
+  mkdir --parents  ~/.vim/doxygen-support/templates
 
-The right sides above show the default values.
+Create a private template file 'doxygen.templates' (compulsory) in this
+directory to overwrite some macros, e.g.
+
+ *$AUTHOR$*    = your name
+ *$AUTHORREF$* = ...
+ *$EMAIL$*     = ...
+ *$COMPANY$*   = ...
+ *$COPYRIGHT$* = ...
+
+You can also have local templates which overwrite the global ones. To suppress
+the messages in this case set a global variable in '~/.vimrc' (Windows:
+'~\_vimrc') :
+
+  let g:Doxy_TemplateOverwrittenMsg= 'no'
+
+The default is 'yes'.
 
 ----------------------------------------------------------------------
 vim:tw=78:noet:ts=2:ft=help:norl:

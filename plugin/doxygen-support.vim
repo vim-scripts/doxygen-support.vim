@@ -9,8 +9,8 @@
 "      COMPANY:  Fachhochschule Südwestfalen, Iserlohn
 "      VERSION:  see variable  g:DoxygenVersion  below
 "      CREATED:  07.07.2007
-"     REVISION:  $Id: doxygen-support.vim,v 1.20 2010/07/05 20:31:33 mehner Exp $
-"      LICENSE:  Copyright (c) 2007-2010, Fritz Mehner
+"     REVISION:  $Id: doxygen-support.vim,v 1.21 2011/03/05 09:36:24 mehner Exp $
+"      LICENSE:  Copyright (c) 2007-2011, Fritz Mehner
 "                This program is free software; you can redistribute it and/or
 "                modify it under the terms of the GNU General Public License as
 "                published by the Free Software Foundation, version 2 of the
@@ -34,48 +34,63 @@ if exists("g:DoxygenVersion") || &cp
  finish
 endif
 "
-let g:DoxygenVersion= "2.1"               " version number of this script; do not change
+let g:DoxygenVersion= "2.2"               " version number of this script; do not change
+"
+let s:installation						= 'local'
+let s:vimfiles								= $VIM
+let	s:sourced_script_file			= expand("<sfile>")
+let s:Doxy_GlobalTemplateFile	= ''
+let s:Doxy_GlobalTemplateDir	= ''
 "
 "------------------------------------------------------------------------------
 " Platform specific items
 "------------------------------------------------------------------------------
 let s:MSWIN =   has("win16") || has("win32") || has("win64") || has("win95")
-"
-if  s:MSWIN
-	let s:installation						= 'system'
-	let s:plugin_dir							= $VIM.'\vimfiles\'
-	let s:Doxy_GlobalTemplateFile	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
-	let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
-	let s:Doxy_LocalTemplateFile	= s:Doxy_GlobalTemplateFile
-	let s:Doxy_LocalTemplateDir 	= s:Doxy_GlobalTemplateDir
-	let s:Doxy_DoxygenExecutable  = 'doxygen.exe'
-else
-  let s:plugin_dir  	= $HOME.'/.vim/'
+
+if	s:MSWIN
+  " ==========  MS Windows  ======================================================
 	"
-	" user / system wide installation (Linux/Unix)
-	"
-	if match( expand("<sfile>"), $VIM ) == 0
-		"
+	if match( s:sourced_script_file, escape( s:vimfiles, ' \' ) ) == 0
 		" system wide installation
-		"
 		let s:installation						= 'system'
-		let s:plugin_dir  						= $VIM.'/vimfiles/'
-		let s:Doxy_GlobalTemplateFile	= s:plugin_dir.'doxygen-support/templates/doxygen.templates'
-		let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":p:h" ).'/'
-		let s:Doxy_LocalTemplateFile	= $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
-		let s:Doxy_LocalTemplateDir 	= fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+		let s:plugin_dir							= $VIM.'/vimfiles/'
+		let s:Doxy_GlobalTemplateDir	= s:plugin_dir.'doxygen-support/templates'
+		let s:Doxy_GlobalTemplateFile = s:Doxy_GlobalTemplateDir.'/doxygen.templates'
 	else
-		"
 		" user installation assumed
-		"
-		let s:installation						= 'local'
-		let s:plugin_dir  						= $HOME.'/.vim/'
-		let s:Doxy_GlobalTemplateFile = ''
-		let s:Doxy_GlobalTemplateDir  = ''
-		let s:Doxy_LocalTemplateFile  = s:plugin_dir.'doxygen-support/templates/doxygen.templates'
-		let s:Doxy_LocalTemplateDir   = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+		let s:plugin_dir  						= $HOME.'/vimfiles/'
 	endif
-	let s:Doxy_DoxygenExecutable  = 'doxygen'
+	"
+	let s:Doxy_LocalTemplateFile    = $HOME.'/vimfiles/doxygen-support/templates/doxygen.templates'
+	let s:Doxy_LocalTemplateDir     = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+	let s:Doxy_CodeSnippets  				= $HOME.'/vimfiles/doxygen-support/codesnippets/'
+	let s:Doxy_IndentErrorLog				= $HOME.'/_indent.errorlog'
+	"
+  let s:escfilename 	= ''
+	let s:Doxy_Display	= ''
+	"
+else
+  " ==========  Linux/Unix  ======================================================
+	"
+	if match( expand("<sfile>"), expand("$HOME") ) == 0
+		" user installation assumed
+		let s:plugin_dir  	= $HOME.'/.vim/'
+	else
+		" system wide installation
+		let s:installation						= 'system'
+		let s:plugin_dir							= $VIM.'/vimfiles/'
+		let s:Doxy_GlobalTemplateDir	= s:plugin_dir.'doxygen-support/templates'
+		let s:Doxy_GlobalTemplateFile = s:Doxy_GlobalTemplateDir.'/doxygen.templates'
+	endif
+	"
+	let s:Doxy_LocalTemplateFile    = $HOME.'/.vim/doxygen-support/templates/doxygen.templates'
+	let s:Doxy_LocalTemplateDir     = fnamemodify( s:Doxy_LocalTemplateFile, ":p:h" ).'/'
+	let s:Doxy_CodeSnippets  				= $HOME.'/.vim/doxygen-support/codesnippets/'
+	let s:Doxy_IndentErrorLog				= $HOME.'/.indent.errorlog'
+	"
+  let s:escfilename 	= ' \%#[]'
+	let s:Doxy_Display	= $DISPLAY
+	"
 endif
 "
 "------------------------------------------------------------------------------
@@ -157,20 +172,22 @@ function! s:DoxygenCheckGlobal ( name )
   endif
 endfunction
 "
+call s:DoxygenCheckGlobal('Doxy_DoxygenErrorFileName  ')
+call s:DoxygenCheckGlobal('Doxy_DoxygenExecutable     ')
+call s:DoxygenCheckGlobal('Doxy_DoxygenLogFileName    ')
 call s:DoxygenCheckGlobal('Doxy_ExCommandLeader       ')
 call s:DoxygenCheckGlobal('Doxy_FormatDate            ')
 call s:DoxygenCheckGlobal('Doxy_FormatTime            ')
 call s:DoxygenCheckGlobal('Doxy_FormatYear            ')
-call s:DoxygenCheckGlobal('Doxy_GlobalTemplateDir     ')
 call s:DoxygenCheckGlobal('Doxy_GlobalTemplateFile    ')
 call s:DoxygenCheckGlobal('Doxy_LoadMenus             ')
-call s:DoxygenCheckGlobal('Doxy_LocalTemplateDir      ')
 call s:DoxygenCheckGlobal('Doxy_LocalTemplateFile     ')
 call s:DoxygenCheckGlobal('Doxy_RootMenu              ')
 call s:DoxygenCheckGlobal('Doxy_TemplateOverwrittenMsg')
-call s:DoxygenCheckGlobal('Doxy_DoxygenExecutable     ')
-call s:DoxygenCheckGlobal('Doxy_DoxygenErrorFileName  ')
-call s:DoxygenCheckGlobal('Doxy_DoxygenLogFileName    ')
+
+if exists('g:Doxy_GlobalTemplateFile') && g:Doxy_GlobalTemplateFile != ''
+	let s:Doxy_GlobalTemplateDir	= fnamemodify( s:Doxy_GlobalTemplateFile, ":h" )
+endif
 "
 if s:Doxy_RootMenu == ""
   let s:Doxy_RootMenu = 'Do&xy.'       " use the default
@@ -267,27 +284,33 @@ endfunction    " ----------  end of function DoxygenRemoveGuiMenus  ----------
 "------------------------------------------------------------------------------
 function! DoxygenInitMenu ()
   "
-  silent exe "amenu .1 ".s:Doxy_RootMenu.'Doxygen              <Nop>'
-  silent exe "amenu .1 ".s:Doxy_RootMenu.'-Sep00-    :'
+  silent exe "amenu    .1 ".s:Doxy_RootMenu.'Doxygen              <Nop>'
+  silent exe "amenu    .1 ".s:Doxy_RootMenu.'-Sep00-    :'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'-Sep01-    :'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.Run<Tab>Doxy     <Nop>'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep02-    :'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.run\ doxygen			   						:call DoxygenRun()<CR>'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep03-    :'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.select\ working\ directory			:call DoxygenSelectWorkingDir()<CR><CR>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.select\ config\.\ file   				:call DoxygenSelectConfigFile()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.select\ config\.\ file   			:call DoxygenSelectConfigFile()<CR>'
   silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ config\.\ file    				:call DoxygenEditConfigFile()<CR>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.generate\ a\ config\.\ file			:call DoxygenGenerateConfigFile()<CR>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep04-    :'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates        :call DoxygenEditTemplates("local")<CR>'
-  silent exe "imenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates   <C-C>:call DoxygenEditTemplates("local")<CR>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates       :call DoxygenEditTemplates("global")<CR>'
-  silent exe "imenu .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates  <C-C>:call DoxygenEditTemplates("global")<CR>'
-         exe "amenu .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates             :call DoxygenRebuild("yes")<CR>'
-         exe "imenu .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates        <C-C>:call DoxygenRebuild("yes")<CR>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep05-           <Nop>'
-  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.plugin\ settings          <C-C>:call DoxygenSettings()<CR>'
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.generate\ a\ config\.\ file		:call DoxygenGenerateConfigFile()<CR>'
+	"
+  silent exe "amenu .9999 ".s:Doxy_RootMenu.'Run.-Sep04-                          <Nop>'
+  exe "amenu <silent> .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates        :call DoxygenBrowseTemplateFiles("Local")<CR>'
+  exe "imenu <silent> .9999 ".s:Doxy_RootMenu.'Run.edit\ &local\ templates   <C-C>:call DoxygenBrowseTemplateFiles("Local")<CR>'
+	if s:installation == 'system'
+		exe "amenu <silent> .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates       :call DoxygenBrowseTemplateFiles("Global")<CR>'
+		exe "imenu <silent> .9999 ".s:Doxy_RootMenu.'Run.edit\ &global\ templates  <C-C>:call DoxygenBrowseTemplateFiles("Global")<CR>'
+	endif
+  exe "amenu <silent> .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates             :call DoxygenRereadTemplates("yes")<CR>'
+  exe "imenu <silent> .9999 ".s:Doxy_RootMenu.'Run.reread\ &templates        <C-C>:call DoxygenRereadTemplates("yes")<CR>'
+	"
+  exe "amenu <silent> .9999 ".s:Doxy_RootMenu.'Run.-Sep05-           							<Nop>'
+  exe "amenu <silent> .9999 ".s:Doxy_RootMenu.'Run.plugin\ settings          <C-C>:call DoxygenSettings()<CR>'
 
+	exe " menu  <silent> .9999  ".s:Doxy_RootMenu.'&help\ (Doxygen-Support)<Tab>        :call DoxygenPluginHelp()<CR>'
+	exe "imenu  <silent> .9999  ".s:Doxy_RootMenu.'&help\ (Doxygen-Support)<Tab>   <C-C>:call DoxygenPluginHelp()<CR>'
   "------------------------------------------------------------------------------
   "  remove existing menus (if any)
   "------------------------------------------------------------------------------
@@ -379,33 +402,36 @@ function! DoxygenBrowseTemplateFiles ( type )
 endfunction    " ----------  end of function DoxygenBrowseTemplateFiles  ----------
 
 "------------------------------------------------------------------------------
-"  DoxygenEditTemplates     {{{1
+"  DoxygenBrowseTemplateFiles     {{{1
 "------------------------------------------------------------------------------
-function! DoxygenEditTemplates ( type )
-	"
-	if a:type == 'global'
-		if s:installation == 'system'
-			call DoxygenBrowseTemplateFiles('Global')
+function! DoxygenBrowseTemplateFiles ( type )
+	let	templatefile	= eval( 's:Doxy_'.a:type.'TemplateFile' )
+	let	templatedir		= eval( 's:Doxy_'.a:type.'TemplateDir' )
+	if isdirectory( templatedir )
+		if has("browse") && s:Doxy_GuiTemplateBrowser == 'gui'
+			let	l:templatefile	= browse(0,"edit a template file", templatedir, "" )
 		else
-			echomsg "Doxygen-Support is user installed: no global template file"
+				let	l:templatefile	= ''
+			if s:Doxy_GuiTemplateBrowser == 'explorer'
+				exe ':Explore '.templatedir
+			endif
+			if s:Doxy_GuiTemplateBrowser == 'commandline'
+				let	l:templatefile	= input("edit a template file", templatedir, "file" )
+			endif
 		endif
-	endif
-	"
-	if a:type == 'local'
-		if s:installation == 'system'
-			call DoxygenBrowseTemplateFiles('Global')
-		else
-			call DoxygenBrowseTemplateFiles('Local')
+		if l:templatefile != ""
+			:execute "update! | split | edit ".l:templatefile
 		endif
+	else
+		echomsg "Template directory '".templatedir."' does not exist."
 	endif
-	"
-endfunction    " ----------  end of function DoxygenEditTemplates  ----------
+endfunction    " ----------  end of function DoxygenBrowseTemplateFiles  ----------
 
 "------------------------------------------------------------------------------
-"  DoxygenRebuild
+"  DoxygenRereadTemplates
 "  rebuild commands and the menu from the (changed) template file
 "------------------------------------------------------------------------------
-function! DoxygenRebuild ( msg )
+function! DoxygenRereadTemplates ( msg )
   "-------------------------------------------------------------------------------
   "   (1.1) template file already loaded:
   "     (1.1.1) window open : go to this window
@@ -421,24 +447,41 @@ function! DoxygenRebuild ( msg )
 	let s:Doxy_Template     = {}
 	let s:Doxy_FileVisited  = []
 	let	s:Doxy_Menutitle		= {}
+	let	messsage					= ''
 
-	if s:installation == 'system' && filereadable( s:Doxy_GlobalTemplateFile )
-		call DoxygenReadTemplates( s:Doxy_GlobalTemplateFile )
-		if a:msg == 'yes'
-			echomsg "doxygen comments rebuilt from global file '".s:Doxy_GlobalTemplateFile."'"
-		end
-	endif
-
-	if filereadable( s:Doxy_LocalTemplateFile )
-		call DoxygenReadTemplates( s:Doxy_LocalTemplateFile )
-		if a:msg == 'yes'
-			echomsg "doxygen comments rebuilt from local file '".s:Doxy_LocalTemplateFile."'"
-		endif
+	if s:installation == 'system'
+			"
+			if filereadable( s:Doxy_GlobalTemplateFile )
+				call DoxygenReadTemplates( s:Doxy_GlobalTemplateFile )
+			else
+				echomsg "Global template file '.s:Doxy_GlobalTemplateFile.' not readable."
+				return
+			endif
+			let messsage = "doxygen comments rebuilt from global file '".s:Doxy_GlobalTemplateFile."'"
+			"
+			if filereadable( s:Doxy_LocalTemplateFile )
+				call DoxygenReadTemplates( s:Doxy_LocalTemplateFile )
+				let messsage	= messsage." and '".s:Doxy_LocalTemplateFile."'"
+			endif
+			"
+		else
+			"
+			if filereadable( s:Doxy_LocalTemplateFile )
+				call DoxygenReadTemplates( s:Doxy_LocalTemplateFile )
+				let	messsage	= "Templates read from '".s:Doxy_LocalTemplateFile."'"
+			else
+				echomsg "Local template file '".s:Doxy_LocalTemplateFile."' not readable." 
+				return
+			endif
+			"
 	endif
 
 	call DoxygenBuildCommands()
+	if a:msg == 'yes'
+		echomsg messsage.'.'
+	endif
 
-endfunction    " ----------  end of function DoxygenRebuild  ----------
+endfunction    " ----------  end of function DoxygenRereadTemplates  ----------
 
 "------------------------------------------------------------------------------
 "  DoxygenReadTemplates
@@ -1040,19 +1083,32 @@ function! DoxygenGenerateConfigFile (  )
 endfunction    " ----------  end of function DoxygenGenerateConfigFile ----------
 "
 "------------------------------------------------------------------------------
+"  DoxygenPluginHelp : help doxygen-support     {{{1
+"------------------------------------------------------------------------------
+function! DoxygenPluginHelp ()
+	try
+		:help doxygen-support
+	catch
+		exe ':helptags '.s:plugin_dir.'doc'
+		:help doxygen-support
+	endtry
+endfunction    " ----------  end of function DoxygenPluginHelp ----------
+"
+"------------------------------------------------------------------------------
 "  Run : settings     {{{1
 "------------------------------------------------------------------------------
 function! DoxygenSettings ()
-  let txt =     "  Doxygen-Support settings\n\n"
-  let txt = txt.'  doxygen config file :  "'.s:Doxy_Doxyfile."\"\n"
-  let txt = txt.'   working directory  :  "'.s:Doxy_CWD."\"\n"
-  let txt = txt.'         author name  :  "'.s:Doxy_Macro['$AUTHOR$']."\"\n"
-  let txt = txt.'            initials  :  "'.s:Doxy_Macro['$AUTHORREF$']."\"\n"
-  let txt = txt.'               email  :  "'.s:Doxy_Macro['$EMAIL$']."\"\n"
-  let txt = txt.'             company  :  "'.s:Doxy_Macro['$COMPANY$']."\"\n"
-  let txt = txt.'             project  :  "'.s:Doxy_Macro['$PROJECT$']."\"\n"
-  let txt = txt.'    copyright holder  :  "'.s:Doxy_Macro['$COPYRIGHTHOLDER$']."\"\n"
+  let txt =     "      Doxygen-Support settings\n\n"
+  let txt = txt.'      doxygen config file :  "'.s:Doxy_Doxyfile."\"\n"
+  let txt = txt.'       working directory  :  "'.s:Doxy_CWD."\"\n"
+  let txt = txt.'             author name  :  "'.s:Doxy_Macro['$AUTHOR$']."\"\n"
+  let txt = txt.'                initials  :  "'.s:Doxy_Macro['$AUTHORREF$']."\"\n"
+  let txt = txt.'                   email  :  "'.s:Doxy_Macro['$EMAIL$']."\"\n"
+  let txt = txt.'                 company  :  "'.s:Doxy_Macro['$COMPANY$']."\"\n"
+  let txt = txt.'                 project  :  "'.s:Doxy_Macro['$PROJECT$']."\"\n"
+  let txt = txt.'        copyright holder  :  "'.s:Doxy_Macro['$COPYRIGHTHOLDER$']."\"\n"
 	" ----- template files  ------------------------
+	let txt = txt.'      plugin installation :  "'.s:installation."\"\n"
 	if s:installation == 'system'
 		let txt = txt.'global template directory :  '.s:Doxy_GlobalTemplateDir."\n"
 		if filereadable( s:Doxy_LocalTemplateFile )
@@ -1072,7 +1128,7 @@ endfunction   " ---------- end of function  DoxygenSettings  ----------
 "  build the menus (GUI only)
 "------------------------------------------------------------------------------
 "
-call DoxygenRebuild( 'no' )
+call DoxygenRereadTemplates( 'no' )
 
 if has("gui_running")
 	"
@@ -1092,9 +1148,9 @@ command! DxSelectWorkingDir			call DoxygenSelectWorkingDir()
 command! DxSelectConfigFile			call DoxygenSelectConfigFile()
 command! DxEditConfigFile				call DoxygenEditConfigFile()
 command! DxGenerateConfigFile		call DoxygenGenerateConfigFile()
-command! DxEditLocalTemplates		call DoxygenEditTemplates("local")
-command! DxEditGlobalTemplates	call DoxygenEditTemplates("global")
-command! DxReread	            	call DoxygenRebuild("yes")
+command! DxEditLocalTemplates		call DoxygenBrowseTemplateFiles("Local")
+command! DxEditGlobalTemplates	call DoxygenBrowseTemplateFiles("Global")
+command! DxReread	            	call DoxygenRereadTemplates("yes")
 command! DxSettings							call DoxygenSettings()
 "
 "------------------------------------------------------------------------------
